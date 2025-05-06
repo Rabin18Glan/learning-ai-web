@@ -3,6 +3,7 @@ import type { Metadata } from "next"
 import { DashboardNav } from "@/components/dashboard-nav"
 import UserHeader from "@/components/layout-components/user-header"
 
+
 export const metadata: Metadata = {
   title: "Dashboard | EduSense AI",
   description: "Manage your learning materials and interact with your AI tutor",

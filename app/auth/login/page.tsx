@@ -69,7 +69,7 @@ console.log(result)
       }
 
       // Redirect to dashboard on successful login
-      router.push("/dashboard")
+      router.push("/user-dashboard/dashboard")
     } catch (err: any) {
       setError(err.message || "Login failed")
       setIsLoading(false)

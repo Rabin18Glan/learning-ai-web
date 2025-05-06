@@ -20,7 +20,7 @@ export default function Home() {
                   </p>
                 </div>
                 <div className="flex flex-col gap-2 min-[400px]:flex-row">
-                  <Link href="/signup">
+                  <Link href="/auth/signup">
                     <Button size="lg" className="gap-1.5">
                       Get Started
                       <ArrowRight className="h-4 w-4" />

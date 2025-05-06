@@ -59,7 +59,7 @@ function Header() {
           
           {isAuthenticated ? (
             <div className="flex items-center gap-4">
-              <Link href="/dashboard">
+              <Link href="/user-dashboard/dashboard">
                 <Button variant="outline" size="sm">
                   Dashboard
                 </Button>
@@ -98,12 +98,12 @@ function Header() {
             </div>
           ) : (
             <div className="flex items-center gap-2">
-              <Link href="/login">
+              <Link href="/auth/login">
                 <Button variant="outline" size="sm">
                   Login
                 </Button>
               </Link>
-              <Link href="/signup">
+              <Link href="/auth/signup">
                 <Button size="sm">Sign Up</Button>
               </Link>
             </div>

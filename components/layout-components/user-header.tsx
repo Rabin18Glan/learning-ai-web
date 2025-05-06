@@ -1,4 +1,5 @@
 import type React from "react"
+import Link from "next/link"
 
 import { UserNav } from "@/components/user-nav"
 import { MobileNav } from "@/components/mobile-nav"
