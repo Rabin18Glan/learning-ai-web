@@ -3,6 +3,7 @@ import mongoose, { type Document, Schema } from "mongoose"
 // Resource types that can be added to a learning path
 export enum ResourceType {
   PDF = "pdf",
+  TEXT="txt",
   YOUTUBE = "youtube",
   DOCUMENT = "document",
   WEBPAGE = "webpage",

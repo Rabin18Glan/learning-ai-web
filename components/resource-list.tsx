@@ -16,10 +16,11 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { toast } from "@/components/ui/use-toast"
+import { ResourceType } from "@/models/LearningPath"
 
 interface Resource {
   _id: string
-  type: "document" | "youtube" | "webpage"
+  type: ResourceType
   title: string
   description?: string
   url: string

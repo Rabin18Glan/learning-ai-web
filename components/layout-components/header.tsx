@@ -59,7 +59,7 @@ function Header() {
           
           {isAuthenticated ? (
             <div className="flex items-center gap-4">
-              <Link href="/user-dashboard/dashboard">
+              <Link href="/dashboard">
                 <Button variant="outline" size="sm">
                   Dashboard
                 </Button>

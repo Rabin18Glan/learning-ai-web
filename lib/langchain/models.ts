@@ -1,8 +1,7 @@
-import { ChatOllama } from "langchain/chat_models/ollama"
-import { HuggingFaceInferenceEmbeddings } from "langchain/embeddings/hf"
-import { OllamaEmbeddings } from "langchain/embeddings/ollama"
-import { RecursiveCharacterTextSplitter } from "langchain/text_splitter"
-
+import { ChatOllama } from "@langchain/ollama";
+import { HuggingFaceInferenceEmbeddings } from "@langchain/community/embeddings/hf";
+import { OllamaEmbeddings } from "@langchain/ollama";
+import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 // Available open-source LLM models
 export enum OpenSourceLLM {
   LLAMA3_8B = "llama3:8b",
@@ -30,7 +29,7 @@ export const MODEL_CONTEXT_WINDOW = {
   [OpenSourceLLM.MIXTRAL_8X7B]: 32768,
   [OpenSourceLLM.PHI3_MINI]: 4096,
   [OpenSourceLLM.GEMMA_7B]: 8192,
-}
+};
 
 // Default chunk sizes for different models
 export const DEFAULT_CHUNK_SIZE = {
@@ -40,7 +39,7 @@ export const DEFAULT_CHUNK_SIZE = {
   [OpenSourceLLM.MIXTRAL_8X7B]: 4000,
   [OpenSourceLLM.PHI3_MINI]: 800,
   [OpenSourceLLM.GEMMA_7B]: 1000,
-}
+};
 
 // Default chunk overlap for different models
 export const DEFAULT_CHUNK_OVERLAP = {
@@ -50,7 +49,7 @@ export const DEFAULT_CHUNK_OVERLAP = {
   [OpenSourceLLM.MIXTRAL_8X7B]: 800,
   [OpenSourceLLM.PHI3_MINI]: 160,
   [OpenSourceLLM.GEMMA_7B]: 200,
-}
+};
 
 /**
  * Create a chat model using Ollama
@@ -60,7 +59,7 @@ export function createChatModel(model: OpenSourceLLM = OpenSourceLLM.LLAMA3_8B) 
     model,
     baseUrl: process.env.OLLAMA_BASE_URL || "http://localhost:11434",
     temperature: 0.2,
-  })
+  });
 }
 
 /**
@@ -72,32 +71,32 @@ export function createEmbeddings(model: OpenSourceEmbedding = OpenSourceEmbeddin
       return new OllamaEmbeddings({
         model: "bge-small",
         baseUrl: process.env.OLLAMA_BASE_URL || "http://localhost:11434",
-      })
+      });
     case OpenSourceEmbedding.BGE_BASE:
       return new OllamaEmbeddings({
         model: "bge-base",
         baseUrl: process.env.OLLAMA_BASE_URL || "http://localhost:11434",
-      })
+      });
     case OpenSourceEmbedding.NOMIC_EMBED:
       return new HuggingFaceInferenceEmbeddings({
         model: "nomic-ai/nomic-embed-text-v1",
         apiKey: process.env.HUGGINGFACE_API_KEY,
-      })
+      });
     case OpenSourceEmbedding.SENTENCE_TRANSFORMERS:
       return new HuggingFaceInferenceEmbeddings({
         model: "sentence-transformers/all-MiniLM-L6-v2",
         apiKey: process.env.HUGGINGFACE_API_KEY,
-      })
+      });
     case OpenSourceEmbedding.INSTRUCTOR:
       return new HuggingFaceInferenceEmbeddings({
         model: "hkunlp/instructor-large",
         apiKey: process.env.HUGGINGFACE_API_KEY,
-      })
+      });
     default:
       return new OllamaEmbeddings({
         model: "bge-small",
         baseUrl: process.env.OLLAMA_BASE_URL || "http://localhost:11434",
-      })
+      });
   }
 }
 
@@ -108,5 +107,5 @@ export function createTextSplitter(model: OpenSourceLLM = OpenSourceLLM.LLAMA3_8
   return new RecursiveCharacterTextSplitter({
     chunkSize: DEFAULT_CHUNK_SIZE[model],
     chunkOverlap: DEFAULT_CHUNK_OVERLAP[model],
-  })
+  });
 }

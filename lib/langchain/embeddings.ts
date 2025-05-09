@@ -1,6 +1,6 @@
-import { OpenAIEmbeddings } from "langchain/embeddings/openai"
-import { HuggingFaceInferenceEmbeddings } from "langchain/embeddings/hf"
-import { CohereEmbeddings } from "langchain/embeddings/cohere"
+import { OpenAIEmbeddings } from "@langchain/openai"
+import { HuggingFaceInferenceEmbeddings } from "@langchain/community/embeddings/hf";
+import { CohereEmbeddings } from "@langchain/cohere"
 
 // Embedding model options
 export enum EmbeddingModel {

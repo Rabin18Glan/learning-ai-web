@@ -25,22 +25,22 @@ export function DashboardNav({ onNavItemClick }: DashboardNavProps) {
   const navItems: NavItem[] = [
     {
       title: "Dashboard",
-      href: "/user-dashboard/dashboard",
+      href: "/dashboard",
       icon: <Home className="mr-2 h-4 w-4" />,
     },
     {
       title: "Learnings",
-      href: "/user-dashboard/learnings",
+      href: "/learnings",
       icon: <BookOpen className="mr-2 h-4 w-4" />,
     },
     {
       title: "Analytics",
-      href: "/user-dashboard/analytics",
+      href: "/analytics",
       icon: <BarChart className="mr-2 h-4 w-4" />,
     },
     {
       title: "Settings",
-      href: "/user-dashboard/settings",
+      href: "/settings",
       icon: <Settings className="mr-2 h-4 w-4" />,
     },
   ]

@@ -2,7 +2,7 @@ import { type NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/app/api/auth/[...nextauth]/route"
 import LearningPath from "@/models/LearningPath"
-import { connectToDatabase } from "@/lib/db"
+import connectToDatabase from "@/lib/db"
 
 export async function GET(req: NextRequest) {
   try {
@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
     const page = Number.parseInt(url.searchParams.get("page") || "1")
     const isPublic = url.searchParams.get("public") === "true"
 
-    await connectToDatabase()
+    await connectToDatabase();
 
     // Build query
     const query: any = {}
@@ -73,7 +73,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Title and description are required" }, { status: 400 })
     }
 
-    await connectToDatabase()
+    await connectToDatabase();
 
     const learningPath = new LearningPath({
       title,

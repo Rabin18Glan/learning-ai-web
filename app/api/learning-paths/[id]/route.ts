@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/app/api/auth/[...nextauth]/route"
 import LearningPath from "@/models/LearningPath"
 import mongoose from "mongoose"
-import { connectToDatabase } from "@/lib/db"
+import  connectToDatabase  from "@/lib/db"
 
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   try {
