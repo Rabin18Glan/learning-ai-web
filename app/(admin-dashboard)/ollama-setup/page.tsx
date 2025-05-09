@@ -40,7 +40,7 @@ export default function OllamaSetupPage() {
       setOllamaStatus(data)
     } catch (error) {
       console.error("Error checking Ollama status:", error)
-      setError(error.message || "Failed to check Ollama status")
+      setError( "Failed to check Ollama status")
     } finally {
       setLoading(false)
     }
@@ -70,7 +70,7 @@ export default function OllamaSetupPage() {
       }, 3000)
     } catch (error) {
       console.error("Error pulling model:", error)
-      setError(error.message || "Failed to pull model")
+      setError( "Failed to pull model")
       setPullingModel(null)
     }
   }
