@@ -14,8 +14,8 @@ const COLLECTION_NAME = "document_vectors";
 export async function createOrUpdateVectorStore(
   documents: Document[],
   learningPathId: string,
-  embeddingModel: OpenSourceEmbedding = OpenSourceEmbedding.BGE_SMALL,
-): Promise<string> {
+  embeddingModel: OpenSourceEmbedding = OpenSourceEmbedding.SENTENCE_TRANSFORMERS,
+): Promise<MongoDBAtlasVectorSearch> {
   try {
     await connectToDatabase();
     const db = mongoose.connection.db;
@@ -47,7 +47,7 @@ export async function createOrUpdateVectorStore(
       embeddingKey: "embedding",
     });
 
-    return learningPathId;
+    return vectorStore;
   } catch (error) {
     console.error("Error creating vector store:", error);
     throw error;

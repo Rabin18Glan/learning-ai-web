@@ -1,65 +1,113 @@
 import { type NextRequest, NextResponse } from "next/server"
+import mongoose from "mongoose"
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/app/api/auth/[...nextauth]/route"
-import LearningPath from "@/models/LearningPath"
-import mongoose from "mongoose"
-import { connectToDatabase } from "@/lib/db"
-import { answerQuestion } from "@/lib/langgraph/agents"
-import { OpenSourceLLM, OpenSourceEmbedding } from "@/lib/langchain/models"
+import connectToDatabase from "@/lib/db"
+import Chat from "@/models/Chat"
 
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+// GET all chats for a learning path
+export async function GET(req: NextRequest, context: { params: { id: string } }) {
   try {
     const session = await getServerSession(authOptions)
-
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
-
-    const { id } = params
-    const { question, model, embeddingModel } = await req.json()
-
-    if (!question || typeof question !== "string") {
-      return NextResponse.json({ error: "Question is required" }, { status: 400 })
-    }
-
+    const params = context.params instanceof Promise ? await context.params : context.params
+    const { id } =await  params;
     if (!mongoose.Types.ObjectId.isValid(id)) {
-      return NextResponse.json({ error: "Invalid ID" }, { status: 400 })
+      return NextResponse.json({ error: "Invalid learning path ID" }, { status: 400 })
     }
-
     await connectToDatabase()
-
-    // Find the learning path
-    const learningPath = await LearningPath.findById(id)
-
-    if (!learningPath) {
-      return NextResponse.json({ error: "Learning path not found" }, { status: 404 })
-    }
-
-    // Check if the learning path has a vector store
-    if (!learningPath.vectorStoreId) {
-      return NextResponse.json(
-        { error: "This learning path doesn't have any processed documents yet" },
-        { status: 400 },
-      )
-    }
-
-    // Set default models if not provided
-    const llmModel = model ? (model as OpenSourceLLM) : OpenSourceLLM.LLAMA3_8B
-    const embedding = embeddingModel ? (embeddingModel as OpenSourceEmbedding) : OpenSourceEmbedding.BGE_SMALL
-
-    // Generate answer using RAG
-    const result = await answerQuestion(question, id, llmModel, embedding)
-
-    if (result.error) {
-      return NextResponse.json({ error: result.error }, { status: 500 })
-    }
-
-    return NextResponse.json({
-      answer: result.answer,
-      question,
-    })
+    const chats = await Chat.find({ learningPathId: id, userId: session.user.id })
+    return NextResponse.json({ chats })
   } catch (error) {
-    console.error("Error generating answer:", error)
-    return NextResponse.json({ error: "Failed to generate answer" }, { status: 500 })
+    console.error("Error fetching chats:", error)
+    return NextResponse.json({ error: error || "Failed to fetch chats" }, { status: 500 })
+  }
+}
+
+// POST create a new chat for a learning path
+export async function POST(req: NextRequest, context: { params: { id: string } }) {
+  try {
+    const session = await getServerSession(authOptions)
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+    const params = context.params instanceof Promise ? await context.params : context.params
+    const { id } = params
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return NextResponse.json({ error: "Invalid learning path ID" }, { status: 400 })
+    }
+    const data = await req.json()
+    if (!data.title || typeof data.title !== "string" || !data.title.trim()) {
+      data.title = "New Chat";
+    }
+    await connectToDatabase()
+    const chat = await Chat.create({
+      ...data,
+      learningPathId: id,
+      userId: session.user.id,
+    })
+    return NextResponse.json({ chat })
+  } catch (error: any) {
+    if (error.name === "ValidationError") {
+      return NextResponse.json({ error: error.message, details: error.errors }, { status: 400 })
+    }
+    console.error("Error creating chat:", error)
+    return NextResponse.json({ error: error.message || "Failed to create chat" }, { status: 500 })
+  }
+}
+
+// PUT update a chat by chatId (expects chatId in body)
+export async function PUT(req: NextRequest, context: { params: { id: string } }) {
+  try {
+    const session = await getServerSession(authOptions)
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+    const params = context.params instanceof Promise ? await context.params : context.params
+    const { id } = params
+    const { chatId, ...updates } = await req.json()
+    if (!mongoose.Types.ObjectId.isValid(chatId)) {
+      return NextResponse.json({ error: "Invalid chat ID" }, { status: 400 })
+    }
+    await connectToDatabase()
+    const chat = await Chat.findOneAndUpdate(
+      { _id: chatId, learningPathId: id, userId: session.user.id },
+      updates,
+      { new: true }
+    )
+    if (!chat) {
+      return NextResponse.json({ error: "Chat not found" }, { status: 404 })
+    }
+    return NextResponse.json({ chat })
+  } catch (error) {
+    console.error("Error updating chat:", error)
+    return NextResponse.json({ error: error || "Failed to update chat" }, { status: 500 })
+  }
+}
+
+// DELETE a chat by chatId (expects chatId in body)
+export async function DELETE(req: NextRequest, context: { params: { id: string } }) {
+  try {
+    const session = await getServerSession(authOptions)
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+    const params = context.params instanceof Promise ? await context.params : context.params
+    const { id } = await params
+    const { chatId } = await req.json()
+    if (!mongoose.Types.ObjectId.isValid(chatId)) {
+      return NextResponse.json({ error: "Invalid chat ID" }, { status: 400 })
+    }
+    await connectToDatabase()
+    const result = await Chat.deleteOne({ _id: chatId, learningPathId: id, userId: session.user.id })
+    if (result.deletedCount === 0) {
+      return NextResponse.json({ error: "Chat not found" }, { status: 404 })
+    }
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error("Error deleting chat:", error)
+    return NextResponse.json({ error: error || "Failed to delete chat" }, { status: 500 })
   }
 }

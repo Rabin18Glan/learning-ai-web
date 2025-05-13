@@ -83,9 +83,9 @@ const UserSchema = new Schema<IUser>(
   },
 )
 
-// Index for faster queries
-UserSchema.index({ email: 1 })
-UserSchema.index({ subscriptionStatus: 1 })
+// // Index for faster queries
+// UserSchema.index({ email: 1 })
+// UserSchema.index({ subscriptionStatus: 1 })
 
 // Hash password before saving
 UserSchema.pre("save", async function (next) {

@@ -8,77 +8,47 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Textarea } from "@/components/ui/textarea"
-import { toast } from "@/components/ui/use-toast"
-import { FileUploader } from "@/components/file-uploader"
 import { Progress } from "@/components/ui/progress"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { CheckCircle2, FileText, Globe, Youtube } from "lucide-react"
+import { FileUploader } from "./file-uploader"
 
 interface ResourceUploaderProps {
   learningPathId: string
   onCancel: () => void
   onSuccess: () => void
+  onUploadFile: (file: File, title: string, description: string) => Promise<void>
+  onSubmitUrl: (data: { title: string; url: string; description: string }) => Promise<void>
+  uploadProgress: number
+  uploadStatus: "idle" | "uploading" | "success" | "error"
 }
 
-export function ResourceUploader({ learningPathId, onCancel, onSuccess }: ResourceUploaderProps) {
+export function ResourceUploader({
+  learningPathId,
+  onCancel,
+  onSuccess,
+  onUploadFile,
+  onSubmitUrl,
+  uploadProgress,
+  uploadStatus,
+}: ResourceUploaderProps) {
   const [activeTab, setActiveTab] = useState("document")
-  const [uploadProgress, setUploadProgress] = useState(0)
-  const [uploadStatus, setUploadStatus] = useState<"idle" | "uploading" | "success" | "error">("idle")
   const [resourceTitle, setResourceTitle] = useState("")
   const [resourceDescription, setResourceDescription] = useState("")
   const [resourceUrl, setResourceUrl] = useState("")
 
-  const simulateUpload = () => {
-    setUploadStatus("uploading")
-    setUploadProgress(0)
-
-    const interval = setInterval(() => {
-      setUploadProgress((prev) => {
-        if (prev >= 100) {
-          clearInterval(interval)
-          setUploadStatus("success")
-          return 100
-        }
-        return prev + 5
-      })
-    }, 200)
-  }
-
   const handleDocumentUpload = async (file: File) => {
-    simulateUpload()
-    // In a real implementation, this would upload the file to a server
+    await onUploadFile(file, resourceTitle, resourceDescription)
   }
 
   const handleUrlSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!resourceUrl) return
-
-    setUploadStatus("uploading")
-    setUploadProgress(0)
-
-    try {
-      // Simulate API call
-      const interval = setInterval(() => {
-        setUploadProgress((prev) => {
-          if (prev >= 100) {
-            clearInterval(interval)
-            setUploadStatus("success")
-            return 100
-          }
-          return prev + 10
-        })
-      }, 200)
-
-      // In a real implementation, this would send the URL to a server for processing
-    } catch (error) {
-      console.error("Error processing URL:", error)
-      setUploadStatus("error")
-      toast({
-        title: "Error",
-        description: "Failed to process URL. Please try again.",
-        variant: "destructive",
-      })
-    }
+    await onSubmitUrl({
+      title: resourceTitle,
+      url: resourceUrl,
+      description: resourceDescription,
+    })
   }
 
   const handleComplete = () => {

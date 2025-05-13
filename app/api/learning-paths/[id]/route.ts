@@ -3,9 +3,9 @@ import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/app/api/auth/[...nextauth]/route"
 import LearningPath from "@/models/LearningPath"
 import mongoose from "mongoose"
-import  connectToDatabase  from "@/lib/db"
+import connectToDatabase from "@/lib/db"
 
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, context: { params: { id: string } }) {
   try {
     const session = await getServerSession(authOptions)
 
@@ -13,6 +13,8 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
+    // Await params if it's a Promise (Next.js 14+ App Router API)
+    const params = context.params instanceof Promise ? await context.params : context.params
     const { id } = params
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -21,31 +23,44 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 
     await connectToDatabase()
 
+    // Populate resources for normalized model
     const learningPath = await LearningPath.findById(id)
       .populate("creatorId", "name email image")
       .populate("collaborators", "name email image")
+      .lean()
 
-    if (!learningPath) {
+    let lp = learningPath
+    if (Array.isArray(lp)) {
+      if (!lp[0]) {
+        return NextResponse.json({ error: "Learning path not found" }, { status: 404 })
+      }
+      lp = lp[0]
+    }
+
+    if (!lp) {
       return NextResponse.json({ error: "Learning path not found" }, { status: 404 })
     }
 
-    // Check if user has access to this learning path
-    const userId = session.user.id
-    const isCreator = learningPath.creatorId._id.toString() === userId
-    const isCollaborator = learningPath.collaborators.some((collab: any) => collab._id.toString() === userId)
+    // Do NOT fetch or attach resources here. Only return the learning path meta info.
+    // If you want to keep collaborators, that's fine, but do not attach resources.
 
-    if (!isCreator && !isCollaborator && !learningPath.isPublic) {
+    // Use unique variable names to avoid redeclaration
+    const userIdMeta = session.user.id
+    const isCreatorMeta = lp.creatorId._id.toString() === userIdMeta
+    const isCollaboratorMeta = lp.collaborators.some((collab: any) => collab._id.toString() === userIdMeta)
+
+    if (!isCreatorMeta && !isCollaboratorMeta && !lp.isPublic) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 })
     }
 
-    return NextResponse.json(learningPath)
+    return NextResponse.json(lp)
   } catch (error) {
     console.error("Error fetching learning path:", error)
     return NextResponse.json({ error: "Failed to fetch learning path" }, { status: 500 })
   }
 }
 
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(req: NextRequest, context: { params: { id: string } }) {
   try {
     const session = await getServerSession(authOptions)
 
@@ -53,8 +68,10 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
+    // Await params if it's a Promise (Next.js 14+ App Router API)
+    const params = context.params instanceof Promise ? await context.params : context.params
     const { id } = params
-    const userId = session.user.id
+    const userIdPut = session.user.id
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return NextResponse.json({ error: "Invalid ID" }, { status: 400 })
@@ -72,10 +89,10 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     }
 
     // Check if user is the creator or a collaborator
-    const isCreator = learningPath.creatorId.toString() === userId
-    const isCollaborator = learningPath.collaborators.includes(userId)
+    const isCreatorPut = learningPath.creatorId.toString() === userIdPut
+    const isCollaboratorPut = learningPath.collaborators.includes(userIdPut)
 
-    if (!isCreator && !isCollaborator) {
+    if (!isCreatorPut && !isCollaboratorPut) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 })
     }
 
@@ -93,7 +110,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   }
 }
 
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, context: { params: { id: string } }) {
   try {
     const session = await getServerSession(authOptions)
 
@@ -101,8 +118,10 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
+    // Await params if it's a Promise (Next.js 14+ App Router API)
+    const params = context.params instanceof Promise ? await context.params : context.params
     const { id } = params
-    const userId = session.user.id
+    const userIdDelete = session.user.id
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return NextResponse.json({ error: "Invalid ID" }, { status: 400 })
@@ -118,7 +137,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
     }
 
     // Check if user is the creator
-    if (learningPath.creatorId.toString() !== userId) {
+    if (learningPath.creatorId.toString() !== userIdDelete) {
       return NextResponse.json({ error: "Only the creator can delete a learning path" }, { status: 403 })
     }
 

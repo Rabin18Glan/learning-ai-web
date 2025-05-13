@@ -14,7 +14,9 @@ export enum OpenSourceLLM {
 
 // Available open-source embedding models
 export enum OpenSourceEmbedding {
+ NOMIC_EMBED_TEXT= "nomic-embed-text",
   BGE_SMALL = "bge-small",
+  MXBAI_EMBED_LARGE="mxbai-embed-large",
   BGE_BASE = "bge-base",
   NOMIC_EMBED = "nomic-embed",
   SENTENCE_TRANSFORMERS = "sentence-transformers",
@@ -65,11 +67,11 @@ export function createChatModel(model: OpenSourceLLM = OpenSourceLLM.LLAMA3_8B) 
 /**
  * Create embeddings using open-source models
  */
-export function createEmbeddings(model: OpenSourceEmbedding = OpenSourceEmbedding.BGE_SMALL) {
+export function createEmbeddings(model: OpenSourceEmbedding = OpenSourceEmbedding.NOMIC_EMBED_TEXT) {
   switch (model) {
-    case OpenSourceEmbedding.BGE_SMALL:
+    case OpenSourceEmbedding.NOMIC_EMBED_TEXT:
       return new OllamaEmbeddings({
-        model: "bge-small",
+        model: "nomic-embed-text",
         baseUrl: process.env.OLLAMA_BASE_URL || "http://localhost:11434",
       });
     case OpenSourceEmbedding.BGE_BASE:

@@ -141,9 +141,9 @@ const SubscriptionSchema = new Schema<ISubscription>(
 )
 
 // Indexes for faster queries
-SubscriptionSchema.index({ userId: 1 })
-SubscriptionSchema.index({ status: 1 })
-SubscriptionSchema.index({ plan: 1 })
-SubscriptionSchema.index({ endDate: 1 })
+// SubscriptionSchema.index({ userId: 1 })
+// SubscriptionSchema.index({ status: 1 })
+// SubscriptionSchema.index({ plan: 1 })
+// SubscriptionSchema.index({ endDate: 1 })
 
 export default mongoose.models.Subscription || mongoose.model<ISubscription>("Subscription", SubscriptionSchema)

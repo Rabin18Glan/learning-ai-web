@@ -33,10 +33,9 @@ interface IUserAttempt {
 }
 
 export interface IQuiz extends Document {
+  learningPathId: mongoose.Types.ObjectId // Reference to parent LearningPath
   title: string
   description?: string
-  documentId?: mongoose.Types.ObjectId
-  learningPathId?: mongoose.Types.ObjectId
   creatorId: mongoose.Types.ObjectId
   questions: IQuestion[]
   timeLimit?: number
@@ -137,6 +136,11 @@ const UserAttemptSchema = new Schema<IUserAttempt>({
 
 const QuizSchema = new Schema<IQuiz>(
   {
+    learningPathId: {
+      type: Schema.Types.ObjectId,
+      ref: "LearningPath",
+      required: true,
+    },
     title: {
       type: String,
       required: [true, "Please provide a quiz title"],
@@ -147,14 +151,6 @@ const QuizSchema = new Schema<IQuiz>(
       type: String,
       trim: true,
       maxlength: [500, "Description cannot be more than 500 characters"],
-    },
-    documentId: {
-      type: Schema.Types.ObjectId,
-      ref: "Document",
-    },
-    learningPathId: {
-      type: Schema.Types.ObjectId,
-      ref: "LearningPath",
     },
     creatorId: {
       type: Schema.Types.ObjectId,
@@ -205,12 +201,11 @@ const QuizSchema = new Schema<IQuiz>(
   },
 )
 
-// Indexes for faster queries
-QuizSchema.index({ creatorId: 1 })
-QuizSchema.index({ documentId: 1 })
-QuizSchema.index({ learningPathId: 1 })
-QuizSchema.index({ isPublished: 1, isPublic: 1 })
-QuizSchema.index({ tags: 1 })
-QuizSchema.index({ difficulty: 1 })
+// // Indexes for faster queries
+// QuizSchema.index({ creatorId: 1 })
+// QuizSchema.index({ learningPathId: 1 })
+// QuizSchema.index({ isPublished: 1, isPublic: 1 })
+// QuizSchema.index({ tags: 1 })
+// QuizSchema.index({ difficulty: 1 })
 
 export default mongoose.models.Quiz || mongoose.model<IQuiz>("Quiz", QuizSchema)

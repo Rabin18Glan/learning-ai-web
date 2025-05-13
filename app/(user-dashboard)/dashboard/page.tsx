@@ -17,8 +17,8 @@ export default function DashboardPage() {
       <div className="flex items-center justify-between">
         <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
         <div className="flex items-center gap-2">
-          <Link href="/learnings/create">
-            <Button>Create Learning Path</Button>
+          <Link href="/learnings">
+            <Button>My Learnings</Button>
           </Link>
         </div>
       </div>

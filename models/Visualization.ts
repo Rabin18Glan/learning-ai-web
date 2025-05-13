@@ -20,10 +20,10 @@ interface IEdge {
 }
 
 export interface IVisualization extends Document {
+  learningPathId: mongoose.Types.ObjectId // Reference to parent LearningPath
   title: string
   description?: string
   userId: mongoose.Types.ObjectId
-  documentIds: mongoose.Types.ObjectId[]
   visualizationType: "mindMap" | "knowledgeGraph" | "conceptMap" | "timeline"
   nodes: INode[]
   edges: IEdge[]
@@ -78,6 +78,11 @@ const EdgeSchema = new Schema<IEdge>({
 
 const VisualizationSchema = new Schema<IVisualization>(
   {
+    learningPathId: {
+      type: Schema.Types.ObjectId,
+      ref: "LearningPath",
+      required: true,
+    },
     title: {
       type: String,
       required: [true, "Please provide a visualization title"],
@@ -94,13 +99,6 @@ const VisualizationSchema = new Schema<IVisualization>(
       ref: "User",
       required: [true, "User ID is required"],
     },
-    documentIds: [
-      {
-        type: Schema.Types.ObjectId,
-        ref: "Document",
-        required: [true, "At least one document ID is required"],
-      },
-    ],
     visualizationType: {
       type: String,
       enum: ["mindMap", "knowledgeGraph", "conceptMap", "timeline"],
@@ -161,10 +159,9 @@ const VisualizationSchema = new Schema<IVisualization>(
   },
 )
 
-// Indexes for faster queries
-VisualizationSchema.index({ userId: 1 })
-VisualizationSchema.index({ documentIds: 1 })
-VisualizationSchema.index({ visualizationType: 1 })
-VisualizationSchema.index({ isPublic: 1 })
+// // Indexes for faster queries
+// VisualizationSchema.index({ userId: 1 })
+// VisualizationSchema.index({ visualizationType: 1 })
+// VisualizationSchema.index({ isPublic: 1 })
 
 export default mongoose.models.Visualization || mongoose.model<IVisualization>("Visualization", VisualizationSchema)

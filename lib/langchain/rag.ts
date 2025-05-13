@@ -34,7 +34,7 @@ Answer the user's question based on the above context.`;
 export async function createRAGChain(
   learningPathId: string,
   llmModel: OpenSourceLLM = OpenSourceLLM.LLAMA3_8B,
-  embeddingModel: OpenSourceEmbedding = OpenSourceEmbedding.BGE_SMALL,
+  embeddingModel: OpenSourceEmbedding = OpenSourceEmbedding.NOMIC_EMBED_TEXT,
 ) {
   // Create the language model
   const model = createChatModel(llmModel);
@@ -75,7 +75,7 @@ export async function generateRAGResponse(
   question: string,
   learningPathId: string,
   llmModel: OpenSourceLLM = OpenSourceLLM.LLAMA3_8B,
-  embeddingModel: OpenSourceEmbedding = OpenSourceEmbedding.BGE_SMALL,
+  embeddingModel: OpenSourceEmbedding = OpenSourceEmbedding.NOMIC_EMBED_TEXT,
 ) {
   const chain = await createRAGChain(learningPathId, llmModel, embeddingModel);
   const response = await chain.invoke({ question });

@@ -1,7 +1,7 @@
 import type React from "react"
 import type { Metadata } from "next"
 import { DashboardNav } from "@/components/dashboard-nav"
-import UserHeader from "@/components/layout-components/user-header"
+import UserHeader from "@/components/common/layout-components/user-header"
 
 
 export const metadata: Metadata = {
