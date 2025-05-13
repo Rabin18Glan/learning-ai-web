@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Plus } from "lucide-react"
 import axios from "axios"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
+import { CircularProgressIndicator } from "@/components/circular-progress-indicator"
 
 export interface Resource {
   _id: string
@@ -123,7 +124,9 @@ export function ResourcesTab({ learningPathId }: { learningPathId: string }) {
         </Button>
       </CardHeader>
       <CardContent>
-        {showUploader ? (
+
+        {isLoading&&<CircularProgressIndicator value={10}/>}
+        {showUploader&&!isLoading && 
           <ResourceUploader
             learningPathId={learningPathId}
             onCancel={handleUploaderCancel}
@@ -133,9 +136,11 @@ export function ResourcesTab({ learningPathId }: { learningPathId: string }) {
             uploadProgress={uploadProgress}
             uploadStatus={uploadStatus}
           />
-        ) : (
-          <ResourceList resources={resources} learningPathId={learningPathId} />
-        )}
+        }
+        {
+        (!showUploader&&!isLoading)&&  <ResourceList resources={resources} learningPathId={learningPathId} />
+
+        }
       </CardContent>
     </Card>
   )
