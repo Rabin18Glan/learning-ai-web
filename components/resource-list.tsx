@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { toast } from "@/components/ui/use-toast"
 import Link from "next/link"
-import { Resource } from "./specific/learning-path/resources-tab"
+import { Resource } from "../app/(learning-room)/learnings/[id]/_components/resources-tab"
 
 interface ResourceListProps {
   resources: Resource[]

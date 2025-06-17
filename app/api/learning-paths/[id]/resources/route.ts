@@ -1,13 +1,12 @@
-import { type NextRequest, NextResponse } from "next/server"
-import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/app/api/auth/[...nextauth]/route"
-import mongoose from "mongoose"
+import { addDocumentsToStore } from "@/lib/agent/vector-store"
 import connectToDatabase from "@/lib/db"
 import Resource from "@/models/Resource"
 import { writeFile } from "fs/promises"
+import mongoose from "mongoose"
+import { getServerSession } from "next-auth/next"
+import { type NextRequest, NextResponse } from "next/server"
 import path from "path"
-import { processDocuments } from "@/lib/langgraph/agents";
-import { ResourceType as LoaderResourceType } from "@/lib/langchain/document-loaders";
 
 export async function GET(req: NextRequest, context: { params: { id: string } }) {
   try {
@@ -73,38 +72,15 @@ export async function POST(req: NextRequest, context: { params: { id: string } }
 
     // Trigger embedding/vector store pipeline
     try {
-      let resourceType: LoaderResourceType;
-      if (file.type.includes("pdf")) {
-        resourceType = LoaderResourceType.PDF;
-      } else if (file.type.includes("text") || file.type.includes("plain")) {
-        resourceType = LoaderResourceType.TEXT;
-      } else if (file.type.includes("docx")) {
-        resourceType = LoaderResourceType.DOCX;
-      } else {
-        resourceType = LoaderResourceType.PDF; // Default fallback
-      }
 
-      const result = await processDocuments([
-        {
-          url: filePath, // local file path
-          type: resourceType,
-          metadata: {
-            resourceId: resource._id.toString(),
-            title: resourceName,
-            description,
-            fileUrl,
-            fileType: file.type,
-            fileSize: file.size,
-          },
-        },
-      ], id);
+      const result =await addDocumentsToStore(resource,session.user.id);
 
-      if (result.status === "completed") {
+      if (result) {
         resource.status = "ready";
         resource.processingError = undefined;
       } else {
         resource.status = "error";
-        resource.processingError = result.error || "Unknown error during document processing";
+        resource.processingError =  "Unknown error during document processing";
       }
       await resource.save();
     } catch (embeddingError) {

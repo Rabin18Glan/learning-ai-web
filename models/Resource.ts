@@ -1,12 +1,15 @@
 import mongoose, { type Document ,Schema } from "mongoose"
 export enum ResourceType {
-  PDF = "pdf",
+  DOCX="docx",
+  PDF = "application/pdf",
   TEXT="txt",
   YOUTUBE = "youtube",
   Resource = "Resource",
   WEBPAGE = "webpage",
   IMAGE = "image",
   AUDIO = "audio",
+    CSV = "csv",
+      RECURSIVE_URL = "recursice_url",
 }
 
 export interface IResource extends Document{
@@ -108,5 +111,5 @@ export const ResourceSchema = new Schema<IResource>(
 // ResourceSchema.index({ isPublic: 1 })
 // ResourceSchema.index({ title: "text", description: "text", tags: "text" })
 
-const modelName = "Resource"
-export default (mongoose.models?.[modelName]) || mongoose.model<IResource>(modelName, ResourceSchema)
+
+export default (mongoose.models.Resource) || mongoose.model<IResource>("Resource", ResourceSchema)

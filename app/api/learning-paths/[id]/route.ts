@@ -28,6 +28,7 @@ export async function GET(req: NextRequest, context: { params: { id: string } })
       .populate("creatorId", "name email image")
       .populate("collaborators", "name email image")
       .lean()
+      
 
     let lp = learningPath
     if (Array.isArray(lp)) {

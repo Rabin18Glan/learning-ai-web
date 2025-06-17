@@ -172,7 +172,7 @@ export default function LearningsPage() {
                 <Button variant="outline" className="w-full" onClick={() => handleOpenPath(path._id)}>
                   Open Learning Path
                 </Button>
-                 <Button variant="outline" className="w-full bg-red-500" onClick={() => handleOpenPath(path._id)}>
+                 <Button variant="outline" className="ml-5 w-full border-red-600 text-red-600 hover:bg-red-100 hover:text-red-600" onClick={() => handleOpenPath(path._id)}>
                   Delete
                 </Button>
               </CardFooter>

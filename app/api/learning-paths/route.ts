@@ -86,6 +86,8 @@ export async function POST(req: NextRequest) {
       resources: [],
     })
 
+
+
     await learningPath.save()
 
     return NextResponse.json(learningPath, { status: 201 })
