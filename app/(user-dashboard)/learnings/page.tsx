@@ -168,8 +168,12 @@ export default function LearningsPage() {
                 )}
               </CardContent>
               <CardFooter>
+                
                 <Button variant="outline" className="w-full" onClick={() => handleOpenPath(path._id)}>
                   Open Learning Path
+                </Button>
+                 <Button variant="outline" className="w-full bg-red-500" onClick={() => handleOpenPath(path._id)}>
+                  Delete
                 </Button>
               </CardFooter>
             </Card>
