@@ -3,8 +3,6 @@ name: Docker Image CI
 on:
   push:
     branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
 
 jobs:
   build:
@@ -14,16 +12,21 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build Docker image with secrets
+      - name: Build Docker image (no secrets)
+        run: docker build . -t my-app:latest
+
+      - name: Run container with secrets
         run: |
-          docker build . -f Dockerfile -t my-image-name:$(date +%s) \
-            --build-arg MONGODB_URI=${{ secrets.MONGODB_URI }} \
-            --build-arg MONGODB_ATLAS_URI=${{ secrets.MONGODB_ATLAS_URI }} \
-            --build-arg MONGODB_ATLAS_COLLECTION_NAME=${{ secrets.MONGODB_ATLAS_COLLECTION_NAME }} \
-            --build-arg MONGODB_ATLAS_DB_NAME=${{ secrets.MONGODB_ATLAS_DB_NAME }} \
-            --build-arg NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }} \
-            --build-arg HUGGINGFACE_API_KEY=${{ secrets.HUGGINGFACE_API_KEY }} \
-            --build-arg GOOGLE_API_KEY=${{ secrets.GOOGLE_API_KEY }} \
-            --build-arg PINECONE_API_KEY=${{ secrets.PINECONE_API_KEY }} \
-            --build-arg PINECONE_URL=${{ secrets.PINECONE_URL }} \
-            --build-arg MISTRAL_API_KEY=${{ secrets.MISTRAL_API_KEY }}
+          docker run -d --rm \
+            -e MONGODB_URI="${{ secrets.MONGODB_URI }}" \
+            -e MONGODB_ATLAS_URI="${{ secrets.MONGODB_ATLAS_URI }}" \
+            -e MONGODB_ATLAS_COLLECTION_NAME="${{ secrets.MONGODB_ATLAS_COLLECTION_NAME }}" \
+            -e MONGODB_ATLAS_DB_NAME="${{ secrets.MONGODB_ATLAS_DB_NAME }}" \
+            -e NEXTAUTH_SECRET="${{ secrets.NEXTAUTH_SECRET }}" \
+            -e HUGGINGFACE_API_KEY="${{ secrets.HUGGINGFACE_API_KEY }}" \
+            -e GOOGLE_API_KEY="${{ secrets.GOOGLE_API_KEY }}" \
+            -e PINECONE_API_KEY="${{ secrets.PINECONE_API_KEY }}" \
+            -e PINECONE_URL="${{ secrets.PINECONE_URL }}" \
+            -e MISTRAL_API_KEY="${{ secrets.MISTRAL_API_KEY }}" \
+            -p 3000:3000 \
+            my-app:latest
