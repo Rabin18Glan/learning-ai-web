@@ -14,6 +14,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import Logo from "@/components/logo";
 
 const navLinks = [
   { href: "/features", label: "Features" },
@@ -38,10 +39,7 @@ function Header() {
   return (
     <header className="border-b">
       <div className="container flex h-16 items-center justify-between">
-        <div className="flex items-center gap-2 font-bold text-xl">
-          <BookOpen className="h-6 w-6 text-primary" />
-          <Link href="/">EduSense AI</Link>
-        </div>
+        <Logo />
 
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center gap-4">
@@ -49,14 +47,13 @@ function Header() {
             <Link
               key={link.href}
               href={link.href}
-              className={`text-sm font-medium ${
-                pathname === link.href ? "text-primary" : ""
-              }`}
+              className={`text-sm font-medium ${pathname === link.href ? "text-primary" : ""
+                }`}
             >
               {link.label}
             </Link>
           ))}
-          
+
           {isAuthenticated ? (
             <div className="flex items-center gap-4">
               <Link href="/dashboard">
@@ -132,15 +129,14 @@ function Header() {
               <Link
                 key={link.href}
                 href={link.href}
-                className={`text-sm font-medium ${
-                  pathname === link.href ? "text-primary" : ""
-                }`}
+                className={`text-sm font-medium ${pathname === link.href ? "text-primary" : ""
+                  }`}
                 onClick={() => setIsMenuOpen(false)}
               >
                 {link.label}
               </Link>
             ))}
-            
+
             {isAuthenticated ? (
               <>
                 <div className="pt-2 flex items-center space-x-2">
@@ -169,9 +165,9 @@ function Header() {
                     Settings
                   </Button>
                 </Link>
-                <Button 
-                  variant="ghost" 
-                  className="w-full justify-start text-red-500" 
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start text-red-500"
                   onClick={() => {
                     setIsMenuOpen(false);
                     handleSignOut();

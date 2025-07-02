@@ -1,5 +1,5 @@
 import { Card, CardContent } from '@/components/ui/card';
-import { Metric } from '../_data/metrices';
+import { Metric } from '../data/metrices';
 
 interface MetricCardProps {
   metricData: Metric,

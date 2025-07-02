@@ -1,6 +1,6 @@
 
-import HeroSection from "./_components/hero-section"
-import KeyFeatureSection from "./_components/key-feature-section"
+import HeroSection from "./components/hero-section"
+import KeyFeatureSection from "./components/key-feature-section"
 
 export default function Home() {
   return (

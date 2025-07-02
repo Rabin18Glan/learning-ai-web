@@ -1,10 +1,5 @@
 "use client"
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { FileText, Youtube, Globe, ExternalLink, MessageSquare, Trash2, AlertCircle, Loader2 } from "lucide-react"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -15,9 +10,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { toast } from "@/components/ui/use-toast"
-import Link from "next/link"
-import { Resource } from "../app/(learning-room)/learnings/[id]/_components/resources-tab"
+import { AlertCircle, ExternalLink, FileText, Globe, Loader2, Trash2, Youtube } from "lucide-react"
+import { useState } from "react"
+import { Resource } from "../app/(learning-room)/learnings/[id]/components/resources-tab"
 
 interface ResourceListProps {
   resources: Resource[]

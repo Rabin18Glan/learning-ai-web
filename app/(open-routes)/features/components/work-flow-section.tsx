@@ -1,4 +1,4 @@
-import { workflowSteps } from "../_data/workflow-steps"
+import { workflowSteps } from "../data/workflow-steps"
 import WorkFlowCard from "./work-flow-card"
 
 

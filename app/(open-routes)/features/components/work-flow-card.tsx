@@ -1,5 +1,5 @@
 import React from 'react'
-import { WorkFlowStep } from '../_data/workflow-steps'
+import { WorkFlowStep } from '../data/workflow-steps'
 
 interface WorkFlowCardProps{
     stepNumber:number,

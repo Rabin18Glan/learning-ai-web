@@ -1,6 +1,6 @@
 import React, { ReactNode } from 'react';
-import Footer from '@/components/common/layout-components/footer';
-import Header from '@/components/common/layout-components/header';
+import Footer from '@/components/common/layouts/footer';
+import Header from '@/components/common/layouts/header';
 
 type OpenRouteLayoutProps = {
   children: ReactNode;

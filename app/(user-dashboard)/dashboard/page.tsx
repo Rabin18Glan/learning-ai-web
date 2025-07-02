@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
-import ActivityTabSection from "./_components/activity-tab-section"
-import MetricesSection from "./_components/metrices-section"
+import ActivityTabSection from "./components/activity-tab-section"
+import MetricesSection from "./components/metrices-section"
 
 export default function DashboardPage() {
   return (

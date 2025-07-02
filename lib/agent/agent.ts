@@ -88,7 +88,7 @@ const generate = async (state: FullState): Promise<{
 
 
 
- const graph: CompiledGraph = new StateGraph(StateAnnotation)
+const graph: CompiledGraph = new StateGraph(StateAnnotation)
     .addNode("retrieve", retrieve)
     .addNode("generate", generate)
     .addEdge("__start__", "retrieve")
@@ -109,7 +109,7 @@ export async function invokeAgent(
         question,
         userId,
         learningPathId,
-      
+
     });
 
     return {

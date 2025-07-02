@@ -1,4 +1,4 @@
-import { metrices } from '../_data/metrices'
+import { metrices } from '../data/metrices'
 import MetricCard from './metric-card'
 
 function MetricesSection() {

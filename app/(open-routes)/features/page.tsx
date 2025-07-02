@@ -1,7 +1,7 @@
-import CallToActionSection from "./_components/call-to-action-section";
-import HeroSection from "./_components/hero-section";
-import KeyFeatureSection from "./_components/key-feature-section";
-import WorkFlowSection from "./_components/work-flow-section";
+import CallToActionSection from "./components/call-to-action-section";
+import HeroSection from "./components/hero-section";
+import KeyFeatureSection from "./components/key-feature-section";
+import WorkFlowSection from "./components/work-flow-section";
 
 export default function FeaturesPage() {
   return (
