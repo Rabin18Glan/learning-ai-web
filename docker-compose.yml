@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        MONGODB_URI: ${MONGODB_URI}
+        MONGODB_ATLAS_URI: ${MONGODB_ATLAS_URI}
+        MONGODB_ATLAS_COLLECTION_NAME: ${MONGODB_ATLAS_COLLECTION_NAME}
+        MONGODB_ATLAS_DB_NAME: ${MONGODB_ATLAS_DB_NAME}
+        NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
+        HUGGINGFACE_API_KEY: ${HUGGINGFACE_API_KEY}
+        GOOGLE_API_KEY: ${GOOGLE_API_KEY}
+        PINECONE_API_KEY: ${PINECONE_API_KEY}
+        PINECONE_URL: ${PINECONE_URL}
+        MISTRAL_API_KEY: ${MISTRAL_API_KEY}
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+    restart: unless-stopped
