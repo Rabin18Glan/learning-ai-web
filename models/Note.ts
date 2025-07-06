@@ -1,9 +1,10 @@
-import mongoose, { type Document, Schema } from "mongoose"
+import mongoose, { type Document, Schema, StringExpressionOperatorReturningObject } from "mongoose"
 
 export interface INote extends Document {
   learningPathId: mongoose.Types.ObjectId
   userId: mongoose.Types.ObjectId
-  content: string
+  content: string,
+  title:StringExpressionOperatorReturningObject
   resourceId?: mongoose.Types.ObjectId
   createdAt: Date
   updatedAt: Date
@@ -20,15 +21,17 @@ const NoteSchema = new Schema<INote>({
     ref: "User",
     required: true,
   },
-  content: {
+
+  title: {
     type: String,
     required: true,
     trim: true,
   },
-  resourceId: {
-    type: Schema.Types.ObjectId,
-    ref: "Resource",
-  },
+  content: {
+    type: String,
+    required: true,
+    trim: true,
+  }
 }, {
   timestamps: true,
 })

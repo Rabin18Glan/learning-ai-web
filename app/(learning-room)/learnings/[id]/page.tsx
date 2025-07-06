@@ -10,9 +10,9 @@ import { BookOpen, FileText, MessageSquare, FileEdit, Network, BarChart, Setting
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { OverviewTab } from "@/app/(learning-room)/learnings/[id]/components/overview-tab"
 import { ResourcesTab } from "@/app/(learning-room)/learnings/[id]/components/resources-tab"
-import { ChatTab } from "@/app/(learning-room)/learnings/[id]/components/chat-tab"
+import { ChatTab } from "@/app/(learning-room)/learnings/[id]/components/chat/chat-tab"
 import { VisualizeTab } from "@/app/(learning-room)/learnings/[id]/components/visualize-tab"
-import { NotesTab } from "@/app/(learning-room)/learnings/[id]/components/notes-tab"
+import { NotesTab } from "@/app/(learning-room)/learnings/[id]/components/notes/notes-tab"
 import { TrackingTab } from "@/app/(learning-room)/learnings/[id]/components/tracking-tab"
 import type { ResourceType } from "@/models/Resource"
 
@@ -144,7 +144,7 @@ export default function LearningPathPage() {
         )}
       </div>
       <Tabs defaultValue="overview"  value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3 md:grid-cols-6">
+        <TabsList className="h-min grid w-full grid-cols-2 grid-rows-2 md:grid-rows-1 md:grid-cols-4">
           <TabsTrigger value="overview" className="gap-2">
             <BookOpen className="h-4 w-4" />
             <span className="hidden md:inline">Overview</span>
@@ -157,18 +157,12 @@ export default function LearningPathPage() {
             <MessageSquare className="h-4 w-4" />
             <span className="hidden md:inline">Chat</span>
           </TabsTrigger>
-          <TabsTrigger value="visualize" className="gap-2">
-            <Network className="h-4 w-4" />
-            <span className="hidden md:inline">Visualize</span>
-          </TabsTrigger>
+        
           <TabsTrigger value="notes" className="gap-2">
             <FileEdit className="h-4 w-4" />
             <span className="hidden md:inline">Notes</span>
           </TabsTrigger>
-          <TabsTrigger value="tracking" className="gap-2">
-            <BarChart className="h-4 w-4" />
-            <span className="hidden md:inline">Tracking</span>
-          </TabsTrigger>
+       
         </TabsList>
         <TabsContent value="overview" className="space-y-6">
           <OverviewTab learningPathId={id} />
@@ -179,16 +173,31 @@ export default function LearningPathPage() {
         <TabsContent value="chat" className="space-y-6">
           <ChatTab learningPathId={id} />
         </TabsContent>
-        <TabsContent value="visualize" className="space-y-6">
-          <VisualizeTab learningPathId={id} />
-        </TabsContent>
-        <TabsContent value="notes" className="space-y-6">
+           <TabsContent value="notes" className="space-y-6">
           <NotesTab learningPathId={id} />
         </TabsContent>
-        <TabsContent value="tracking" className="space-y-6">
-          <TrackingTab learningPathId={id} />
-        </TabsContent>
+       
       </Tabs>
     </div>
   )
 }
+
+
+
+
+
+    //  <TabsTrigger value="visualize" className="gap-2">
+    //         <Network className="h-4 w-4" />
+    //         <span className="hidden md:inline">Visualize</span>
+    //       </TabsTrigger>
+    //       <TabsTrigger value="tracking" className="gap-2">
+    //         <BarChart className="h-4 w-4" />
+    //         <span className="hidden md:inline">Tracking</span>
+    //       </TabsTrigger>
+//  <TabsContent value="visualize" className="space-y-6">
+//           <VisualizeTab learningPathId={id} />
+//         </TabsContent>
+     
+//         <TabsContent value="tracking" className="space-y-6">
+//           <TrackingTab learningPathId={id} />
+//         </TabsContent>

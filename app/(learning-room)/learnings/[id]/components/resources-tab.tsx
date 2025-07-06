@@ -112,6 +112,13 @@ export function ResourcesTab({ learningPathId }: { learningPathId: string }) {
     }
   }
 
+
+  const handleDeleteResource =async (resourceId:string)=>{
+    
+       const deletedResource = await axios.delete(`/api/resources/${resourceId}`)
+
+
+  }
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
@@ -138,7 +145,7 @@ export function ResourcesTab({ learningPathId }: { learningPathId: string }) {
           />
         }
         {
-        (!showUploader&&!isLoading)&&  <ResourceList resources={resources} learningPathId={learningPathId} />
+        (!showUploader&&!isLoading)&&  <ResourceList resources={resources} learningPathId={learningPathId} onResourceDelete={handleDeleteResource} />
 
         }
       </CardContent>

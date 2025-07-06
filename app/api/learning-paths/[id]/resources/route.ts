@@ -14,7 +14,7 @@ export async function GET(req: NextRequest, context: { params: { id: string } })
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
-       const params = context.params instanceof Promise ? await context.params : context.params
+    const params = context.params instanceof Promise ? await context.params : context.params
     const { id } = params
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return NextResponse.json({ error: "Invalid learning path ID" }, { status: 400 })
@@ -36,9 +36,9 @@ export async function POST(req: NextRequest, context: { params: { id: string } }
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
-    
-   const params = context.params instanceof Promise ? await context.params : context.params
-    const { id } =await params
+
+    const params = context.params instanceof Promise ? await context.params : context.params
+    const { id } = await params
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return NextResponse.json({ error: "Invalid learning path ID" }, { status: 400 })
     }
@@ -73,14 +73,14 @@ export async function POST(req: NextRequest, context: { params: { id: string } }
     // Trigger embedding/vector store pipeline
     try {
 
-      const result =await addDocumentsToStore(resource,session.user.id);
+      const result = await addDocumentsToStore(resource, session.user.id);
 
       if (result) {
         resource.status = "ready";
         resource.processingError = undefined;
       } else {
         resource.status = "error";
-        resource.processingError =  "Unknown error during document processing";
+        resource.processingError = "Unknown error during document processing";
       }
       await resource.save();
     } catch (embeddingError) {
@@ -98,3 +98,4 @@ export async function POST(req: NextRequest, context: { params: { id: string } }
     return NextResponse.json({ error: "Failed to process resource upload" }, { status: 500 })
   }
 }
+

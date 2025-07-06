@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -8,6 +8,12 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Plus, Save, Trash2, FileText, Edit, Search } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
+import { useSession } from "next-auth/react"
+
+import ReactMarkdown from "react-markdown"
+import remarkGfm from "remark-gfm"
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter"
+import { tomorrow } from "react-syntax-highlighter/dist/esm/styles/prism"
 
 interface Note {
   id: string
@@ -15,6 +21,7 @@ interface Note {
   content: string
   createdAt: string
   updatedAt: string
+  userId?: string
 }
 
 interface NotesEditorProps {
@@ -29,42 +36,24 @@ export function NotesEditor({ learningPathId }: NotesEditorProps) {
   const [searchQuery, setSearchQuery] = useState("")
   const [editTitle, setEditTitle] = useState("")
   const [editContent, setEditContent] = useState("")
+  const auth = useSession()
 
-  // Mock data loading
   useEffect(() => {
-    // In a real app, you would fetch notes from an API
-    const mockNotes: Note[] = [
-      {
-        id: "1",
-        title: "Key Machine Learning Concepts",
-        content:
-          "# Machine Learning Fundamentals\n\n- Supervised Learning: Training with labeled data\n- Unsupervised Learning: Finding patterns in unlabeled data\n- Reinforcement Learning: Learning through trial and error\n\n## Important Algorithms\n\n1. Linear Regression\n2. Logistic Regression\n3. Decision Trees\n4. Random Forests\n5. Support Vector Machines\n6. Neural Networks",
-        createdAt: "2023-05-10T14:30:00Z",
-        updatedAt: "2023-05-15T09:45:00Z",
-      },
-      {
-        id: "2",
-        title: "Neural Networks Architecture",
-        content:
-          "# Neural Network Architectures\n\n## Layers\n- Input Layer\n- Hidden Layers\n- Output Layer\n\n## Activation Functions\n- ReLU\n- Sigmoid\n- Tanh\n- Softmax\n\n## Backpropagation\nThe process of updating weights based on the error gradient.",
-        createdAt: "2023-06-02T11:20:00Z",
-        updatedAt: "2023-06-05T16:10:00Z",
-      },
-      {
-        id: "3",
-        title: "Model Evaluation Metrics",
-        content:
-          "# Evaluation Metrics\n\n## Classification Metrics\n- Accuracy\n- Precision\n- Recall\n- F1 Score\n- ROC-AUC\n\n## Regression Metrics\n- Mean Squared Error (MSE)\n- Root Mean Squared Error (RMSE)\n- Mean Absolute Error (MAE)\n- R-squared\n\n## Cross-Validation\nK-fold cross-validation helps prevent overfitting and provides more reliable performance estimates.",
-        createdAt: "2023-06-20T09:15:00Z",
-        updatedAt: "2023-06-22T14:30:00Z",
-      },
-    ]
+    const fetchNotes = async () => {
+      try {
+        setIsLoading(true)
+        const res = await fetch(`/api/learning-paths/${learningPathId}/notes`)
+        const data = await res.json()
+        setNotes(data)
+        setActiveNote(data[0] || null)
+      } catch (error) {
+        console.error("Error fetching notes:", error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
 
-    setTimeout(() => {
-      setNotes(mockNotes)
-      setActiveNote(mockNotes[0])
-      setIsLoading(false)
-    }, 1000)
+    fetchNotes()
   }, [learningPathId])
 
   const handleCreateNote = () => {
@@ -74,6 +63,7 @@ export function NotesEditor({ learningPathId }: NotesEditorProps) {
       content: "# New Note\n\nStart writing your notes here...",
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
+      userId: auth.data?.user.id,
     }
 
     setNotes([...notes, newNote])
@@ -91,24 +81,38 @@ export function NotesEditor({ learningPathId }: NotesEditorProps) {
     }
   }
 
-  const handleSaveNote = () => {
-    if (activeNote) {
-      const updatedNote = {
-        ...activeNote,
-        title: editTitle,
-        content: editContent,
-        updatedAt: new Date().toISOString(),
-      }
+  const handleSaveNote = async () => {
+    if (!activeNote) return
 
-      setNotes(notes.map((note) => (note.id === activeNote.id ? updatedNote : note)))
-      setActiveNote(updatedNote)
+    const updatedNote: Note = {
+      ...activeNote,
+      title: editTitle,
+      content: editContent,
+      updatedAt: new Date().toISOString(),
+      userId: auth.data?.user.id,
+    }
+
+    try {
+      const res = await fetch(`/api/learning-paths/${learningPathId}/notes`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updatedNote),
+      })
+
+      if (!res.ok) throw new Error("Failed to save note")
+
+      const savedNote = await res.json()
+      setNotes(notes.map(note => (note.id === savedNote.id ? savedNote : note)))
+      setActiveNote(savedNote)
       setIsEditing(false)
+    } catch (error) {
+      console.error("Error saving note:", error)
     }
   }
 
   const handleDeleteNote = () => {
     if (activeNote) {
-      const updatedNotes = notes.filter((note) => note.id !== activeNote.id)
+      const updatedNotes = notes.filter(note => note.id !== activeNote.id)
       setNotes(updatedNotes)
       setActiveNote(updatedNotes.length > 0 ? updatedNotes[0] : null)
       setIsEditing(false)
@@ -122,9 +126,9 @@ export function NotesEditor({ learningPathId }: NotesEditorProps) {
 
   const filteredNotes = searchQuery
     ? notes.filter(
-        (note) =>
+        note =>
           note.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          note.content.toLowerCase().includes(searchQuery.toLowerCase()),
+          note.content.toLowerCase().includes(searchQuery.toLowerCase())
       )
     : notes
 
@@ -194,33 +198,24 @@ export function NotesEditor({ learningPathId }: NotesEditorProps) {
           <Tabs defaultValue="edit" value={isEditing ? "edit" : "preview"}>
             <div className="flex justify-between items-center mb-4">
               <TabsList>
-                <TabsTrigger value="edit" disabled={!isEditing}>
-                  Edit
-                </TabsTrigger>
-                <TabsTrigger value="preview" disabled={isEditing}>
-                  Preview
-                </TabsTrigger>
+                <TabsTrigger value="edit" disabled={!isEditing}>Edit</TabsTrigger>
+                <TabsTrigger value="preview" disabled={isEditing}>Preview</TabsTrigger>
               </TabsList>
               <div className="flex gap-2">
                 {isEditing ? (
                   <>
-                    <Button variant="outline" size="sm" onClick={() => setIsEditing(false)}>
-                      Cancel
-                    </Button>
+                    <Button variant="outline" size="sm" onClick={() => setIsEditing(false)}>Cancel</Button>
                     <Button size="sm" onClick={handleSaveNote}>
-                      <Save className="h-4 w-4 mr-2" />
-                      Save
+                      <Save className="h-4 w-4 mr-2" /> Save
                     </Button>
                   </>
                 ) : (
                   <>
                     <Button variant="outline" size="sm" onClick={handleEditNote}>
-                      <Edit className="h-4 w-4 mr-2" />
-                      Edit
+                      <Edit className="h-4 w-4 mr-2" /> Edit
                     </Button>
                     <Button variant="destructive" size="sm" onClick={handleDeleteNote}>
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      Delete
+                      <Trash2 className="h-4 w-4 mr-2" /> Delete
                     </Button>
                   </>
                 )}
@@ -229,7 +224,11 @@ export function NotesEditor({ learningPathId }: NotesEditorProps) {
 
             <TabsContent value="edit" className="mt-0">
               <div className="space-y-4">
-                <Input placeholder="Note title" value={editTitle} onChange={(e) => setEditTitle(e.target.value)} />
+                <Input
+                  placeholder="Note title"
+                  value={editTitle}
+                  onChange={(e) => setEditTitle(e.target.value)}
+                />
                 <Textarea
                   placeholder="Write your notes here... Markdown is supported."
                   className="min-h-[400px] font-mono"
@@ -242,9 +241,99 @@ export function NotesEditor({ learningPathId }: NotesEditorProps) {
             <TabsContent value="preview" className="mt-0">
               <Card className="p-6">
                 <h2 className="text-2xl font-bold mb-4">{activeNote.title}</h2>
-                <div className="prose prose-sm dark:prose-invert max-w-none">
-                  {/* In a real app, you would render markdown here */}
-                  <div dangerouslySetInnerHTML={{ __html: formatMarkdown(activeNote.content) }} />
+                <div className="prose dark:prose-invert max-w-none prose-code:text-foreground">
+               <ReactMarkdown
+                            remarkPlugins={[remarkGfm]}
+                            components={{
+                              code({ node, className, children, ...props }: any) {
+                                const match = /language-(\w+)/.exec(className || '')
+                                const inline = !match
+                                return !inline && match ? (
+                                  <SyntaxHighlighter
+                                    style={tomorrow}
+                                    language={match[1]}
+                                    PreTag="div"
+                                    className="rounded-md !bg-gray-100 dark:!bg-gray-800"
+                                    {...props}
+                                  >
+                                    {String(children).replace(/\n$/, '')}
+                                  </SyntaxHighlighter>
+                                ) : (
+                                  <code className={`${className} bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded text-sm font-mono`} {...props}>
+                                    {children}
+                                  </code>
+                                )
+                              },
+                              blockquote({ children }) {
+                                return (
+                                  <blockquote className="border-l-4 border-primary pl-4 italic bg-muted/30 py-2 rounded-r my-4">
+                                    {children}
+                                  </blockquote>
+                                )
+                              },
+                              table({ children }) {
+                                return (
+                                  <div className="overflow-x-auto my-4">
+                                    <table className="w-full border-collapse border border-border rounded-lg overflow-hidden">
+                                      {children}
+                                    </table>
+                                  </div>
+                                )
+                              },
+                              th({ children }) {
+                                return (
+                                  <th className="border border-border bg-muted/50 p-3 text-left font-semibold">
+                                    {children}
+                                  </th>
+                                )
+                              },
+                              td({ children }) {
+                                return (
+                                  <td className="border border-border p-3">
+                                    {children}
+                                  </td>
+                                )
+                              },
+                              a({ href, children }) {
+                                return (
+                                  <a
+                                    href={href}
+                                    className="text-primary hover:underline font-medium"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                  >
+                                    {children}
+                                  </a>
+                                )
+                              },
+                              hr() {
+                                return <hr className="my-6 border-border" />
+                              },
+                              h1({ children }) {
+                                return <h1 className="text-2xl font-bold mb-4 text-foreground">{children}</h1>
+                              },
+                              h2({ children }) {
+                                return <h2 className="text-xl font-semibold mb-3 text-foreground">{children}</h2>
+                              },
+                              h3({ children }) {
+                                return <h3 className="text-lg font-semibold mb-2 text-foreground">{children}</h3>
+                              },
+                              p({ children }) {
+                                return <p className="mb-3 text-foreground leading-relaxed">{children}</p>
+                              },
+                              ul({ children }) {
+                                return <ul className="list-disc pl-6 mb-3 text-foreground">{children}</ul>
+                              },
+                              ol({ children }) {
+                                return <ol className="list-decimal pl-6 mb-3 text-foreground">{children}</ol>
+                              },
+                              li({ children }) {
+                                return <li className="mb-1 text-foreground">{children}</li>
+                              }
+                            }}
+                          >
+                            {activeNote.content}
+                          </ReactMarkdown>
                 </div>
               </Card>
             </TabsContent>
@@ -253,38 +342,13 @@ export function NotesEditor({ learningPathId }: NotesEditorProps) {
           <div className="flex flex-col items-center justify-center h-[400px] border rounded-md">
             <FileText className="h-12 w-12 text-muted-foreground mb-4" />
             <h3 className="text-lg font-medium mb-2">No note selected</h3>
-            <p className="text-muted-foreground mb-6">Select a note from the sidebar or create a new one</p>
+            <p className="text-muted-foreground mb-6">
+              Select a note from the sidebar or create a new one
+            </p>
             <Button onClick={handleCreateNote}>Create New Note</Button>
           </div>
         )}
       </div>
     </div>
   )
-}
-
-// Simple markdown formatter (in a real app, use a proper markdown library)
-function formatMarkdown(text: string): string {
-  // Convert headers
-  let html = text
-    .replace(/^# (.*$)/gm, "<h1>$1</h1>")
-    .replace(/^## (.*$)/gm, "<h2>$1</h2>")
-    .replace(/^### (.*$)/gm, "<h3>$1</h3>")
-
-  // Convert lists
-  html = html.replace(/^- (.*$)/gm, "<li>$1</li>")
-  html = html.replace(/<\/li>\n<li>/g, "</li><li>")
-  html = html.replace(/(<li>.*<\/li>)/g, "<ul>$1</ul>")
-
-  // Convert numbered lists
-  html = html.replace(/^\d+\. (.*$)/gm, "<li>$1</li>")
-  html = html.replace(/<\/li>\n<li>/g, "</li><li>")
-  html = html.replace(/(<li>.*<\/li>)/g, "<ol>$1</ol>")
-
-  // Convert paragraphs
-  html = html.replace(/^(?!<[hou]|$)(.*$)/gm, "<p>$1</p>")
-
-  // Convert line breaks
-  html = html.replace(/\n/g, "")
-
-  return html
 }

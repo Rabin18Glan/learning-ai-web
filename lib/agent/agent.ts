@@ -5,7 +5,6 @@ import { pull } from "langchain/hub";
 import { llm } from "./model";
 import {
     EnhancedDocument,
-
     searchLearningPathDocuments
 } from "./vector-store";
 
@@ -32,7 +31,6 @@ type InputState = typeof InputStateAnnotation.State;
 type FullState = typeof StateAnnotation.State;
 type CompiledGraph = CompiledStateGraph<FullState, Partial<FullState>, "__start__" | "retrieve" | "generate">;
 
-
 const retrieve = async (state: InputState): Promise<{
     context: EnhancedDocument[];
     sourceDocuments: EnhancedDocument[]
@@ -55,13 +53,31 @@ const generate = async (state: FullState): Promise<{
     answer: string;
     sourceDocuments: EnhancedDocument[]
 }> => {
-    const promptTemplate = await pull<ChatPromptTemplate>("rlm/rag-prompt");
-    const docsContent = state.context.map((doc, index) => {
-        const source = `Source ${index + 1} (${doc.metadata.resourceTitle}): ${doc.pageContent}`;
-        return source;
-    }).join("\n\n");
+    // Create a custom prompt that specifically asks for markdown format
+    const markdownPrompt = ChatPromptTemplate.fromTemplate(`
+You are a helpful assistant that provides detailed answers based on the given context. 
+Format your response using proper markdown syntax including:
+- Headers (# ## ###) for main sections
+- **bold** for emphasis
+- *italic* for highlights
+- \`code\` for technical terms
+- Lists with - or 1. 
+- Code blocks with \`\`\` when showing code examples
+- > blockquotes for important notes
 
-    const messages = await promptTemplate.invoke({
+Context:
+{context}
+
+Question: {question}
+
+Please provide a comprehensive answer in markdown format:
+`);
+
+    const docsContent = state.context.map((doc, index) => {
+        return `**Source ${index + 1}** (${doc.metadata.resourceTitle}):\n${doc.pageContent}`;
+    }).join("\n\n---\n\n");
+
+    const messages = await markdownPrompt.invoke({
         question: state.question,
         context: docsContent
     });
@@ -73,20 +89,19 @@ const generate = async (state: FullState): Promise<{
         ? response.content
         : JSON.stringify(response.content);
 
-    // Add source information to the answer
-    const sourceInfo = state.context.map((doc, index) =>
-        `[${index + 1}] ${doc.metadata.resourceTitle}`
-    ).join(', ');
+    // Create markdown-formatted source references
+    const sourceReferences = state.context.map((doc, index) =>
+        `[${index + 1}]: ${doc.metadata.resourceTitle}`
+    ).join('\n');
 
-    const enhancedAnswer = `${content}\n\n*Sources: ${sourceInfo}*`;
+    // Combine answer with markdown-formatted sources
+    const markdownAnswer = `${content}\n\n---\n\n### Sources\n\n${sourceReferences}`;
 
     return {
-        answer: enhancedAnswer,
+        answer: markdownAnswer,
         sourceDocuments: state.sourceDocuments
     };
 };
-
-
 
 const graph: CompiledGraph = new StateGraph(StateAnnotation)
     .addNode("retrieve", retrieve)
@@ -104,12 +119,10 @@ export async function invokeAgent(
     answer: string;
     sourceDocuments: EnhancedDocument[];
 }> {
-
     const result = await graph.invoke({
         question,
         userId,
         learningPathId,
-
     });
 
     return {
@@ -117,4 +130,3 @@ export async function invokeAgent(
         sourceDocuments: result.sourceDocuments || []
     };
 }
-
