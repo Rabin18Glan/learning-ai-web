@@ -1,54 +1,44 @@
-import mongoose, { Schema, Document } from "mongoose"
+import mongoose, { Document, Schema } from "mongoose";
 
 export interface IUserProgress extends Document {
-  learningPathId: mongoose.Types.ObjectId
-  userId: mongoose.Types.ObjectId
-  completedResources: mongoose.Types.ObjectId[] // Array of completed Resource IDs
-  completedTasks: mongoose.Types.ObjectId[] // Array of completed Task IDs
-  completedQuizs:mongoose.Types.ObjectId[]
-  lastAccessedAt: Date
-  createdAt: Date
-  updatedAt: Date
+  learningPathId: mongoose.Types.ObjectId;
+  userId: mongoose.Types.ObjectId;
+  lastStreakCount: number;
+  lastAccessedAt: Date;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-const UserProgressSchema = new Schema<IUserProgress>({
-  learningPathId: {
-    type: Schema.Types.ObjectId,
-    ref: "LearningPath",
-    required: true,
-  },
-  userId: {
-    type: Schema.Types.ObjectId,
-    ref: "User",
-    required: true,
-  },
-  completedResources: [
-    {
+const UserProgressSchema = new Schema<IUserProgress>(
+  {
+    learningPathId: {
       type: Schema.Types.ObjectId,
-      ref: "Resource",
+      ref: "LearningPath",
+      required: true,
     },
-  ],
-  completedTasks: [
-    {
+    userId: {
       type: Schema.Types.ObjectId,
-      ref: "Task",
+      ref: "User",
+      required: true,
     },
-  ],
-   completedQuizs: [
-    {
-      type: Schema.Types.ObjectId,
-      ref: "Quiz",
-    },
-  ],
-  lastAccessedAt: {
-    type: Date,
-    default: Date.now,
-  },
-}, {
-  timestamps: true,
-})
 
-// UserProgressSchema.index({ learningPathId: 1 })
-// UserProgressSchema.index({ userId: 1 })
+    lastAccessedAt: {
+      type: Date,
+      default: Date.now,
+    },
+    
+    lastStreakCount: {
+      type: Number,
+      default: 0,
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
 
-export default mongoose.models.UserProgress || mongoose.model<IUserProgress>("UserProgress", UserProgressSchema)
+UserProgressSchema.index({ learningPathId: 1 });
+UserProgressSchema.index({ userId: 1 });
+
+export default mongoose.models.UserProgress ||
+  mongoose.model<IUserProgress>("UserProgress", UserProgressSchema);

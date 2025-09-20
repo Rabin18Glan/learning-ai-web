@@ -1,405 +1,379 @@
-"use client"
 
-import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Progress } from "@/components/ui/progress"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Calendar } from "@/components/ui/calendar"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { format } from "date-fns"
-import { CalendarIcon, Plus, Check, Clock, Target, BarChart, Trophy } from "lucide-react"
-import { Skeleton } from "@/components/ui/skeleton"
+"use client";
 
-interface Goal {
-  id: string
-  title: string
-  targetDate: Date
-  completed: boolean
-}
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "motion/react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Plus, Check, Target, BarChart, Trophy } from "lucide-react";
 
 interface Task {
-  id: string
-  title: string
-  completed: boolean
-  resourceId?: string
+  _id: string;
+  title: string;
+  status: "pending" | "in-progress" | "completed";
+  resourceId?: string;
+  parentTaskId?: string | null;
 }
 
 interface ProgressTrackerProps {
-  learningPathId: string
+  learningPathId: string;
 }
 
 export function ProgressTracker({ learningPathId }: ProgressTrackerProps) {
-  const [isLoading, setIsLoading] = useState(true)
-  const [goals, setGoals] = useState<Goal[]>([])
-  const [tasks, setTasks] = useState<Task[]>([])
-  const [overallProgress, setOverallProgress] = useState(0)
-  const [newGoalTitle, setNewGoalTitle] = useState("")
-  const [newGoalDate, setNewGoalDate] = useState<Date | undefined>(undefined)
-  const [newTaskTitle, setNewTaskTitle] = useState("")
-  const [showAddGoal, setShowAddGoal] = useState(false)
-  const [showAddTask, setShowAddTask] = useState(false)
+  const [isLoading, setIsLoading] = useState(true);
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [newTaskTitle, setNewTaskTitle] = useState("");
+  const [showAddTask, setShowAddTask] = useState(false);
+  const [subtaskInputs, setSubtaskInputs] = useState<Record<string, string>>({});
+  const [subtaskOpen, setSubtaskOpen] = useState<Record<string, boolean>>({});
 
-  // Mock data loading
+  const overallProgress =
+    tasks.length > 0
+      ? Math.round((tasks.filter((t) => t.status === "completed").length / tasks.length) * 100)
+      : 0;
+
+  // Fetch tasks
   useEffect(() => {
-    // In a real app, you would fetch progress data from an API
-    const mockGoals: Goal[] = [
-      {
-        id: "1",
-        title: "Complete Neural Networks section",
-        targetDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
-        completed: false,
-      },
-      {
-        id: "2",
-        title: "Finish all practice exercises",
-        targetDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 14 days from now
-        completed: false,
-      },
-      {
-        id: "3",
-        title: "Review basic concepts",
-        targetDate: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), // 3 days ago
-        completed: true,
-      },
-    ]
-
-    const mockTasks: Task[] = [
-      {
-        id: "1",
-        title: "Read Introduction to Neural Networks",
-        completed: true,
-        resourceId: "resource-1",
-      },
-      {
-        id: "2",
-        title: "Complete activation functions quiz",
-        completed: true,
-        resourceId: "resource-2",
-      },
-      {
-        id: "3",
-        title: "Watch backpropagation video",
-        completed: false,
-        resourceId: "resource-3",
-      },
-      {
-        id: "4",
-        title: "Implement simple neural network",
-        completed: false,
-      },
-      {
-        id: "5",
-        title: "Review chapter 3 notes",
-        completed: false,
-      },
-    ]
-
-    setTimeout(() => {
-      setGoals(mockGoals)
-      setTasks(mockTasks)
-
-      // Calculate overall progress
-      const completedTasks = mockTasks.filter((task) => task.completed).length
-      setOverallProgress(Math.round((completedTasks / mockTasks.length) * 100))
-
-      setIsLoading(false)
-    }, 1000)
-  }, [learningPathId])
-
-  const handleAddGoal = () => {
-    if (newGoalTitle && newGoalDate) {
-      const newGoal: Goal = {
-        id: Date.now().toString(),
-        title: newGoalTitle,
-        targetDate: newGoalDate,
-        completed: false,
+    async function fetchTasks() {
+      try {
+        setIsLoading(true);
+        const res = await fetch(`/api/learning-paths/${learningPathId}/tasks`);
+        const data = await res.json();
+        setTasks(data.tasks || []);
+      } catch (err) {
+        console.error("Failed to fetch tasks", err);
+      } finally {
+        setIsLoading(false);
       }
-
-      setGoals([...goals, newGoal])
-      setNewGoalTitle("")
-      setNewGoalDate(undefined)
-      setShowAddGoal(false)
     }
-  }
+    fetchTasks();
+  }, [learningPathId]);
 
-  const handleAddTask = () => {
-    if (newTaskTitle) {
-      const newTask: Task = {
-        id: Date.now().toString(),
-        title: newTaskTitle,
-        completed: false,
-      }
-
-      setTasks([...tasks, newTask])
-      setNewTaskTitle("")
-      setShowAddTask(false)
-
-      // Update overall progress
-      const completedTasks = tasks.filter((task) => task.completed).length
-      setOverallProgress(Math.round((completedTasks / (tasks.length + 1)) * 100))
+  // Toggle task completion
+  const handleToggleTask = async (task: Task) => {
+    const newStatus = task.status === "completed" ? "pending" : "completed";
+    try {
+      await fetch(`/api/learning-paths/${learningPathId}/tasks/${task._id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus }),
+      });
+      setTasks((prev) =>
+        prev.map((t) => (t._id === task._id ? { ...t, status: newStatus } : t))
+      );
+    } catch (err) {
+      console.error("Error updating task", err);
     }
-  }
+  };
 
-  const handleToggleTask = (taskId: string) => {
-    const updatedTasks = tasks.map((task) => {
-      if (task.id === taskId) {
-        return { ...task, completed: !task.completed }
-      }
-      return task
-    })
+  // Add new main task
+  const handleAddTask = async () => {
+    if (!newTaskTitle.trim()) return;
+    try {
+      const res = await fetch(`/api/learning-paths/${learningPathId}/tasks`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: newTaskTitle }),
+      });
+      const data = await res.json();
+      setTasks((prev) => [...prev, data.task]);
+      setNewTaskTitle("");
+      setShowAddTask(false);
+    } catch (err) {
+      console.error("Error adding task", err);
+    }
+  };
 
-    setTasks(updatedTasks)
+  // Add new subtask
+  const handleAddSubtask = async (parentId: string) => {
+    const title = subtaskInputs[parentId]?.trim();
+    if (!title) return;
+    try {
+      const res = await fetch(`/api/learning-paths/${learningPathId}/tasks/${parentId}/subtasks`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title }),
+      });
+      const data = await res.json();
+      setTasks((prev) => [...prev, data.subtask]);
+      setSubtaskInputs((prev) => ({ ...prev, [parentId]: "" }));
+      setSubtaskOpen((prev) => ({ ...prev, [parentId]: false }));
+    } catch (err) {
+      console.error("Error adding subtask", err);
+    }
+  };
 
-    // Update overall progress
-    const completedTasks = updatedTasks.filter((task) => task.completed).length
-    setOverallProgress(Math.round((completedTasks / updatedTasks.length) * 100))
-  }
-
-  const handleToggleGoal = (goalId: string) => {
-    setGoals(
-      goals.map((goal) => {
-        if (goal.id === goalId) {
-          return { ...goal, completed: !goal.completed }
-        }
-        return goal
-      }),
-    )
-  }
+  // Build tree: main tasks + subtasks
+  const mainTasks = tasks.filter((t) => !t.parentTaskId);
+  const subtasks = (parentId: string) => tasks.filter((t) => t.parentTaskId === parentId);
 
   if (isLoading) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-8 p-4">
+        {/* Loading Skeleton for Overview Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Skeleton className="h-32" />
-          <Skeleton className="h-32" />
-          <Skeleton className="h-32" />
+          {Array(3)
+            .fill(0)
+            .map((_, i) => (
+              <Card key={i} className="shadow-md border border-border">
+                <CardHeader>
+                  <Skeleton className="h-6 w-32" />
+                </CardHeader>
+                <CardContent>
+                  <Skeleton className="h-4 w-24 mb-2" />
+                  <Skeleton className="h-2 w-full" />
+                </CardContent>
+              </Card>
+            ))}
         </div>
-        <Skeleton className="h-[400px]" />
+        {/* Loading Skeleton for Tasks */}
+        <div className="space-y-3">
+          {Array(3)
+            .fill(0)
+            .map((_, i) => (
+              <div key={i} className="flex items-center gap-2 p-3 border rounded-md">
+                <Skeleton className="h-5 w-5 rounded" />
+                <Skeleton className="h-4 w-3/4" />
+                <Skeleton className="h-8 w-20" />
+              </div>
+            ))}
+        </div>
       </div>
-    )
+    );
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 p-4 max-w-4xl mx-auto">
+      {/* Overview Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center text-lg">
-              <BarChart className="h-5 w-5 mr-2 text-blue-500" />
-              Overall Progress
+        <Card className="shadow-md hover:shadow-lg transition-shadow duration-300 border border-border bg-gradient-to-br from-background to-muted/20">
+          <CardHeader>
+            <CardTitle className="flex items-center text-xl font-semibold text-foreground">
+              <BarChart className="h-6 w-6 mr-2 text-blue-500" />
+              Progress
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span>Completion</span>
-                <span className="font-medium">{overallProgress}%</span>
-              </div>
-              <Progress value={overallProgress} className="h-2" />
+            <div className="flex justify-between text-sm mb-3 text-muted-foreground">
+              <span>Completion</span>
+              <span className="font-medium">{overallProgress}%</span>
+            </div>
+            <Progress
+              value={overallProgress}
+              className="h-3 rounded-full"
+
+            />
+          </CardContent>
+        </Card>
+        <Card className="shadow-md hover:shadow-lg transition-shadow duration-300 border border-border bg-gradient-to-br from-background to-muted/20">
+          <CardHeader>
+            <CardTitle className="flex items-center text-xl font-semibold text-foreground">
+              <Check className="h-6 w-6 mr-2 text-green-500" />
+              Completed
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-foreground">
+              {tasks.filter((t) => t.status === "completed").length}/{tasks.length}
             </div>
           </CardContent>
         </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center text-lg">
-              <Check className="h-5 w-5 mr-2 text-green-500" />
-              Completed Tasks
+        <Card className="shadow-md hover:shadow-lg transition-shadow duration-300 border border-border bg-gradient-to-br from-background to-muted/20">
+          <CardHeader>
+            <CardTitle className="flex items-center text-xl font-semibold text-foreground">
+              <Target className="h-6 w-6 mr-2 text-indigo-500" />
+              Milestone
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">
-              {tasks.filter((task) => task.completed).length}/{tasks.length}
-            </div>
-            <p className="text-sm text-muted-foreground mt-1">
-              {tasks.filter((task) => task.completed).length === tasks.length
-                ? "All tasks completed!"
-                : `${tasks.length - tasks.filter((task) => task.completed).length} tasks remaining`}
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center text-lg">
-              <Target className="h-5 w-5 mr-2 text-indigo-500" />
-              Goals
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">
-              {goals.filter((goal) => goal.completed).length}/{goals.length}
-            </div>
-            <p className="text-sm text-muted-foreground mt-1">
-              {goals.filter((goal) => !goal.completed).length > 0
-                ? `Next goal due: ${format(
-                    goals
-                      .filter((goal) => !goal.completed)
-                      .sort((a, b) => a.targetDate.getTime() - b.targetDate.getTime())[0].targetDate,
-                    "MMM d, yyyy",
-                  )}`
-                : "All goals achieved!"}
-            </p>
+            {overallProgress === 100 ? (
+              <motion.div
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                className="flex items-center text-green-600 font-semibold"
+              >
+                <Trophy className="h-5 w-5 mr-2" />
+                Goal Achieved
+              </motion.div>
+            ) : (
+              <p className="text-sm text-muted-foreground">Keep going, you’re making progress!</p>
+            )}
           </CardContent>
         </Card>
       </div>
 
-      <Tabs defaultValue="tasks">
-        <TabsList>
-          <TabsTrigger value="tasks">Tasks</TabsTrigger>
-          <TabsTrigger value="goals">Goals</TabsTrigger>
+      {/* Tasks & Subtasks */}
+      <Tabs defaultValue="tasks" className="bg-transparent">
+        <TabsList className="bg-muted/50 rounded-lg">
+          <TabsTrigger
+            value="tasks"
+            className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+          >
+            Tasks
+          </TabsTrigger>
         </TabsList>
-
-        <TabsContent value="tasks" className="space-y-4 mt-4">
+        <TabsContent value="tasks" className="space-y-4 mt-6">
           <div className="flex justify-between items-center">
-            <h3 className="text-lg font-medium">Learning Tasks</h3>
-            <Button size="sm" onClick={() => setShowAddTask(!showAddTask)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Task
+            <h3 className="text-xl font-semibold text-foreground">Your Tasks</h3>
+            <Button
+              size="sm"
+              onClick={() => setShowAddTask(!showAddTask)}
+              className="bg-primary hover:bg-primary/90 text-primary-foreground transition-transform duration-200 hover:scale-105"
+            >
+              <Plus className="h-4 w-4 mr-2" /> Add Task
             </Button>
           </div>
 
-          {showAddTask && (
-            <div className="flex gap-2 mb-4">
-              <Input
-                placeholder="Enter new task..."
-                value={newTaskTitle}
-                onChange={(e) => setNewTaskTitle(e.target.value)}
-              />
-              <Button onClick={handleAddTask}>Add</Button>
-              <Button variant="outline" onClick={() => setShowAddTask(false)}>
-                Cancel
-              </Button>
-            </div>
-          )}
-
-          <div className="space-y-2">
-            {tasks.map((task) => (
-              <div
-                key={task.id}
-                className="flex items-center space-x-2 p-3 border rounded-md hover:bg-muted/50 transition-colors"
+          {/* Add Main Task */}
+          <AnimatePresence>
+            {showAddTask && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.3 }}
+                className="flex gap-3 mb-4"
               >
-                <Checkbox
-                  id={`task-${task.id}`}
-                  checked={task.completed}
-                  onCheckedChange={() => handleToggleTask(task.id)}
-                />
-                <Label
-                  htmlFor={`task-${task.id}`}
-                  className={`flex-1 cursor-pointer ${task.completed ? "line-through text-muted-foreground" : ""}`}
-                >
-                  {task.title}
-                </Label>
-                {task.resourceId && (
-                  <Button variant="ghost" size="sm" className="text-xs text-muted-foreground">
-                    View Resource
-                  </Button>
-                )}
-              </div>
-            ))}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="goals" className="space-y-4 mt-4">
-          <div className="flex justify-between items-center">
-            <h3 className="text-lg font-medium">Learning Goals</h3>
-            <Button size="sm" onClick={() => setShowAddGoal(!showAddGoal)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Goal
-            </Button>
-          </div>
-
-          {showAddGoal && (
-            <div className="space-y-4 p-4 border rounded-md mb-4">
-              <div className="grid gap-2">
-                <Label htmlFor="goal-title">Goal Title</Label>
                 <Input
-                  id="goal-title"
-                  placeholder="Enter goal title..."
-                  value={newGoalTitle}
-                  onChange={(e) => setNewGoalTitle(e.target.value)}
+                  placeholder="Enter task title..."
+                  value={newTaskTitle}
+                  onChange={(e) => setNewTaskTitle(e.target.value)}
+                  className="border-border focus:ring-2 focus:ring-primary"
                 />
-              </div>
-
-              <div className="grid gap-2">
-                <Label htmlFor="goal-date">Target Date</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" className="w-full justify-start text-left font-normal" id="goal-date">
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {newGoalDate ? format(newGoalDate, "PPP") : "Select a date"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
-                    <Calendar mode="single" selected={newGoalDate} onSelect={setNewGoalDate} initialFocus />
-                  </PopoverContent>
-                </Popover>
-              </div>
-
-              <div className="flex gap-2 justify-end">
-                <Button variant="outline" onClick={() => setShowAddGoal(false)}>
+                <Button
+                  onClick={handleAddTask}
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                >
+                  Add
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowAddTask(false)}
+                  className="border-border hover:bg-muted/50"
+                >
                   Cancel
                 </Button>
-                <Button onClick={handleAddGoal}>Add Goal</Button>
-              </div>
-            </div>
-          )}
+              </motion.div>
+            )}
+          </AnimatePresence>
 
+          {/* Main Tasks */}
           <div className="space-y-4">
-            {goals.map((goal) => (
-              <div
-                key={goal.id}
-                className={`p-4 border rounded-md ${
-                  goal.completed
-                    ? "bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800"
-                    : new Date() > goal.targetDate && !goal.completed
-                      ? "bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800"
-                      : ""
-                }`}
+            {mainTasks.length === 0 && !showAddTask ? (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="text-center py-8 text-muted-foreground"
               >
-                <div className="flex items-start justify-between">
-                  <div className="flex items-start gap-3">
+                <p>No tasks yet. Start by adding a task above!</p>
+              </motion.div>
+            ) : (
+              mainTasks.map((task) => (
+                <motion.div
+                  key={task._id}
+                  layout
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <div className="flex items-center gap-3 p-4 border rounded-lg bg-gradient-to-r from-background to-muted/10 shadow-sm hover:shadow-md transition-shadow duration-200">
                     <Checkbox
-                      id={`goal-${goal.id}`}
-                      checked={goal.completed}
-                      onCheckedChange={() => handleToggleGoal(goal.id)}
-                      className="mt-1"
+                      checked={task.status === "completed"}
+                      onCheckedChange={() => handleToggleTask(task)}
+                      className="h-5 w-5 border-border data-[state=checked]:bg-primary"
                     />
-                    <div>
-                      <Label
-                        htmlFor={`goal-${goal.id}`}
-                        className={`text-base font-medium ${goal.completed ? "line-through text-muted-foreground" : ""}`}
-                      >
-                        {goal.title}
-                      </Label>
-                      <div className="flex items-center mt-1 text-sm text-muted-foreground">
-                        <Clock className="h-3.5 w-3.5 mr-1" />
-                        <span>
-                          Due: {format(goal.targetDate, "MMM d, yyyy")}
-                          {new Date() > goal.targetDate && !goal.completed && (
-                            <span className="text-red-500 dark:text-red-400 ml-2">Overdue</span>
-                          )}
-                        </span>
-                      </div>
-                    </div>
+                    <Label
+                      className={`flex-1 cursor-pointer text-base ${
+                        task.status === "completed"
+                          ? "line-through text-muted-foreground"
+                          : "text-foreground"
+                      }`}
+                    >
+                      {task.title}
+                    </Label>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() =>
+                        setSubtaskOpen((prev) => ({ ...prev, [task._id]: !prev[task._id] }))
+                      }
+                      className="hover:bg-muted/50 transition-colors duration-200"
+                    >
+                      <Plus className="h-4 w-4 mr-1" /> Subtask
+                    </Button>
                   </div>
 
-                  {goal.completed && (
-                    <div className="flex items-center text-green-600 dark:text-green-400 text-sm font-medium">
-                      <Trophy className="h-4 w-4 mr-1" />
-                      Completed
-                    </div>
-                  )}
-                </div>
-              </div>
-            ))}
+                  {/* Subtasks */}
+                  <div className="ml-8 space-y-2 mt-2">
+                    {subtasks(task._id).map((st) => (
+                      <motion.div
+                        key={st._id}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.3 }}
+                        className="flex items-center gap-3 p-3 border rounded-md bg-background shadow-sm"
+                      >
+                        <Checkbox
+                          checked={st.status === "completed"}
+                          onCheckedChange={() => handleToggleTask(st)}
+                          className="h-5 w-5 border-border data-[state=checked]:bg-primary"
+                        />
+                        <Label
+                          className={`flex-1 cursor-pointer text-sm ${
+                            st.status === "completed"
+                              ? "line-through text-muted-foreground"
+                              : "text-foreground"
+                          }`}
+                        >
+                          {st.title}
+                        </Label>
+                      </motion.div>
+                    ))}
+
+                    {/* Add Subtask */}
+                    <AnimatePresence>
+                      {subtaskOpen[task._id] && (
+                        <motion.div
+                          initial={{ opacity: 0, y: -8 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -8 }}
+                          transition={{ duration: 0.3 }}
+                          className="flex gap-3 mt-2"
+                        >
+                          <Input
+                            placeholder="Enter subtask title..."
+                            value={subtaskInputs[task._id] || ""}
+                            onChange={(e) =>
+                              setSubtaskInputs((prev) => ({
+                                ...prev,
+                                [task._id]: e.target.value,
+                              }))
+                            }
+                            className="border-border focus:ring-2 focus:ring-primary"
+                          />
+                          <Button
+                            size="sm"
+                            onClick={() => handleAddSubtask(task._id)}
+                            className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                          >
+                            Add
+                          </Button>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                </motion.div>
+              ))
+            )}
           </div>
         </TabsContent>
       </Tabs>
     </div>
-  )
+  );
 }

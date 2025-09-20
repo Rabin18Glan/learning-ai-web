@@ -1,0 +1,11 @@
+branch  type=>Food and Beverage
+
+product type =>Food
+ 
+ category => snack
+
+ product =  category, varient
+ 
+ pasta snack food vegPasta half,50
+ 
+	

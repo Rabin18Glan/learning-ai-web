@@ -1,43 +1,39 @@
-import { type NextRequest, NextResponse } from "next/server"
-import { getServerSession } from "next-auth/next"
-import { authOptions } from "../../auth/[...nextauth]/route"
-import connectDB from "@/lib/db"
-import Subscription from "@/models/Subscription"
-import User from "@/models/User"
+import { NextRequest, NextResponse } from "next/server";
+import mongoose from "mongoose";
+import { getServerSession } from "next-auth";
+import Subscription from "@/models/Subscription";
+import { authOptions } from "../../auth/[...nextauth]/route";
 
-export async function POST(req: NextRequest) {
+export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const session = await getServerSession(authOptions)
+    const session = await getServerSession(authOptions);
+    const user = session?.user;
 
-    if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    if (!user || user.role !== "admin") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const data = await req.json()
+    if (mongoose.connection.readyState !== 1) {
+      await mongoose.connect(process.env.MONGODB_URI || "");
+    }
 
-    await connectDB()
-
-    // Get user's subscription
-    const subscription = await Subscription.findOne({ userId: session.user.id })
-
+    const subscription = await Subscription.findById(params.id);
     if (!subscription) {
-      return NextResponse.json({ error: "Subscription not found" }, { status: 404 })
+      return NextResponse.json({ error: "Subscription not found" }, { status: 404 });
     }
 
-    // Cancel subscription
-    subscription.status = "canceled"
-    subscription.cancelReason = data.reason
-    subscription.autoRenew = false
-    await subscription.save()
+    if (subscription.status === "canceled") {
+      return NextResponse.json({ error: "Subscription already canceled" }, { status: 400 });
+    }
 
-    // Update user's subscription status
-    await User.findByIdAndUpdate(session.user.id, {
-      subscriptionStatus: "canceled",
-    })
+    subscription.status = "canceled";
+    subscription.cancelReason = "Canceled by admin";
+    subscription.autoRenew = false;
+    await subscription.save();
 
-    return NextResponse.json({ success: true })
-  } catch (error: any) {
-    console.error("Error canceling subscription:", error)
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ message: "Subscription canceled successfully" });
+  } catch (error) {
+    console.error("Error canceling subscription:", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

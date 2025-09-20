@@ -2,7 +2,7 @@ import type React from "react"
 import Link from "next/link"
 
 import { UserNav } from "@/components/user-nav"
-import { MobileNav } from "@/components/mobile-nav"
+
 import Logo from "@/components/logo"
 function UserHeader() {
   return (
@@ -10,7 +10,7 @@ function UserHeader() {
         <div className="container flex h-16 items-center justify-between">
 
           <div className="flex items-center gap-2 font-bold text-xl">
-          <MobileNav />
+        
             <Logo variant="vibrant"/>
           </div>
           <div className="flex items-center gap-2">

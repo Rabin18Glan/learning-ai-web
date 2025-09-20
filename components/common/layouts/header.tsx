@@ -56,9 +56,9 @@ function Header() {
 
           {isAuthenticated ? (
             <div className="flex items-center gap-4">
-              <Link href="/dashboard">
+              <Link href="/learnings">
                 <Button variant="outline" size="sm">
-                  Dashboard
+                  Learnings
                 </Button>
               </Link>
               <DropdownMenu>
@@ -80,9 +80,9 @@ function Header() {
                       Profile
                     </DropdownMenuItem>
                   </Link>
-                  <Link href="/settings">
+                  <Link href="/subscription">
                     <DropdownMenuItem className="cursor-pointer">
-                      Settings
+                      Subscription
                     </DropdownMenuItem>
                   </Link>
                   <DropdownMenuSeparator />

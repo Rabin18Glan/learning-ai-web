@@ -11,7 +11,9 @@ body {
     text-wrap: balance;
   }
 }
-
+.animate-blob {
+  animation: blob 7s infinite;
+}
 @layer base {
   :root {
     --background: 0 0% 100%;

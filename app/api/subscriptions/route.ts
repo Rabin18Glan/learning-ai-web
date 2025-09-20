@@ -1,189 +1,88 @@
-import { type NextRequest, NextResponse } from "next/server"
-import { getServerSession } from "next-auth/next"
-import { authOptions } from "../auth/[...nextauth]/route"
-import connectDB from "@/lib/db"
-import Subscription from "@/models/Subscription"
-import User from "@/models/User"
+import { NextRequest, NextResponse } from "next/server";
+import mongoose from "mongoose";
+import { getServerSession } from "next-auth";
 
+import Subscription from "@/models/Subscription";
+import User from "@/models/User";
+import { authOptions } from "../auth/[...nextauth]/route";
+import connectToDatabase from "@/lib/db";
 export async function GET(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
+    const session = await getServerSession(authOptions);
+    const user = session?.user;
 
-    if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    if (!user || user.role !== "admin") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    await connectDB()
+    const { searchParams } = new URL(req.url);
+    const page = parseInt(searchParams.get("page") || "1", 10);
+    const itemsPerPage = parseInt(searchParams.get("itemsPerPage") || "5", 10);
 
-    // Get user's subscription
-    const subscription = await Subscription.findOne({ userId: session.user.id })
+    await connectToDatabase();
+  
+    const subscriptions = await Subscription.find()
+      .skip((page - 1) * itemsPerPage)
+      .limit(itemsPerPage)
+      .lean();
 
-    if (!subscription) {
-      return NextResponse.json({
-        plan: "free",
-        status: "inactive",
-      })
-    }
+    const totalItems = await Subscription.countDocuments();
 
-    return NextResponse.json(subscription)
-  } catch (error: any) {
-    console.error("Error fetching subscription:", error)
-    return NextResponse.json({ error: error.message }, { status: 500 })
-  }
-}
+    // Calculate statistics
+    const activeCount = await Subscription.countDocuments({ status: "active" });
+    const trialCount = await Subscription.countDocuments({ status: "trial" });
+    const canceledCount = await Subscription.countDocuments({
+      status: "canceled",
+    });
+    const totalCount = await Subscription.countDocuments();
+    const churnRate =
+      totalCount > 0 ? ((canceledCount / totalCount) * 100).toFixed(1) : "0.0";
 
-export async function POST(req: NextRequest) {
-  try {
-    const session = await getServerSession(authOptions)
+const formattedSubscriptions = await Promise.all(
+  subscriptions.map(async (sub) => {
+    console.log(sub.userId);
+    const userData = await User.findOne({_id: sub.userId});
+    console.log(userData);
+    
+    return {
+      _id: sub._id as string,
+      userId: sub.userId,
+      userName: userData?.name || "User Not Found",
+      userEmail: userData?.email || "Email Not Found",
+      plan: sub.plan,
+      status: sub.status,
+      startDate: sub.startDate.toISOString(),
+      endDate: sub.endDate?.toISOString(),
+      trialEndDate: sub.trialEndDate?.toISOString(),
+      billingCycle: sub.billingCycle,
+      price: sub.price,
+      currency: sub.currency,
+      paymentMethod: {
+        type: sub.paymentMethod?.type,
+        brand: sub.paymentMethod?.brand,
+        last4: sub.paymentMethod?.last4,
+      },
+      autoRenew: sub.autoRenew,
+    };
+  })
+);
 
-    if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
-
-    const data = await req.json()
-
-    // Validate required fields
-    if (!data.plan || !data.billingCycle || !data.paymentMethod) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
-    }
-
-    await connectDB()
-
-    // Check if user already has a subscription
-    const existingSubscription = await Subscription.findOne({ userId: session.user.id })
-
-    if (existingSubscription) {
-      return NextResponse.json({ error: "User already has a subscription" }, { status: 400 })
-    }
-
-    // Set price based on plan and billing cycle
-    let price = 0
-    if (data.plan === "pro") {
-      price = data.billingCycle === "monthly" ? 9.99 : 99.99
-    } else if (data.plan === "premium") {
-      price = data.billingCycle === "monthly" ? 19.99 : 199.99
-    }
-
-    // Create subscription
-    const subscription = new Subscription({
-      userId: session.user.id,
-      plan: data.plan,
-      status: "active",
-      startDate: new Date(),
-      endDate:
-        data.billingCycle === "monthly"
-          ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
-          : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
-      billingCycle: data.billingCycle,
-      price,
-      currency: "USD",
-      paymentMethod: data.paymentMethod,
-      billingAddress: data.billingAddress,
-      autoRenew: true,
-      invoices: [
-        {
-          invoiceId: `INV-${Date.now()}`,
-          amount: price,
-          currency: "USD",
-          status: "paid",
-          date: new Date(),
-        },
-      ],
-    })
-
-    await subscription.save()
-
-    // Update user's subscription plan
-    await User.findByIdAndUpdate(session.user.id, {
-      subscriptionPlan: data.plan,
-      subscriptionStatus: "active",
-      subscriptionEndDate: subscription.endDate,
-    })
-
-    return NextResponse.json(subscription, { status: 201 })
-  } catch (error: any) {
-    console.error("Error creating subscription:", error)
-    return NextResponse.json({ error: error.message }, { status: 500 })
-  }
-}
-
-export async function PUT(req: NextRequest) {
-  try {
-    const session = await getServerSession(authOptions)
-
-    if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
-
-    const data = await req.json()
-
-    await connectDB()
-
-    // Get user's subscription
-    const subscription = await Subscription.findOne({ userId: session.user.id })
-
-    if (!subscription) {
-      return NextResponse.json({ error: "Subscription not found" }, { status: 404 })
-    }
-
-    // Update subscription
-    if (data.plan) {
-      subscription.plan = data.plan
-
-      // Update price based on new plan
-      if (data.plan === "pro") {
-        subscription.price = subscription.billingCycle === "monthly" ? 9.99 : 99.99
-      } else if (data.plan === "premium") {
-        subscription.price = subscription.billingCycle === "monthly" ? 19.99 : 199.99
-      } else {
-        subscription.price = 0
-      }
-
-      // Update user's subscription plan
-      await User.findByIdAndUpdate(session.user.id, {
-        subscriptionPlan: data.plan,
-      })
-    }
-
-    if (data.billingCycle) {
-      subscription.billingCycle = data.billingCycle
-
-      // Update price based on new billing cycle
-      if (subscription.plan === "pro") {
-        subscription.price = data.billingCycle === "monthly" ? 9.99 : 99.99
-      } else if (subscription.plan === "premium") {
-        subscription.price = data.billingCycle === "monthly" ? 19.99 : 199.99
-      }
-
-      // Update end date
-      subscription.endDate =
-        data.billingCycle === "monthly"
-          ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
-          : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)
-
-      // Update user's subscription end date
-      await User.findByIdAndUpdate(session.user.id, {
-        subscriptionEndDate: subscription.endDate,
-      })
-    }
-
-    if (data.paymentMethod) {
-      subscription.paymentMethod = data.paymentMethod
-    }
-
-    if (data.billingAddress) {
-      subscription.billingAddress = data.billingAddress
-    }
-
-    if (data.autoRenew !== undefined) {
-      subscription.autoRenew = data.autoRenew
-    }
-
-    await subscription.save()
-
-    return NextResponse.json(subscription)
-  } catch (error: any) {
-    console.error("Error updating subscription:", error)
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({
+      subscriptions: formattedSubscriptions,
+      currentPage: page,
+      totalPages: Math.ceil(totalItems / itemsPerPage),
+      totalItems,
+      stats: {
+        activeSubscriptions: activeCount,
+        trialUsers: trialCount,
+        churnRate: `${churnRate}%`,
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching subscriptions:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
   }
 }

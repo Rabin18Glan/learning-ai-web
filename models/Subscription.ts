@@ -3,7 +3,7 @@ import mongoose, { type Document, Schema } from "mongoose"
 export interface ISubscription extends Document {
   userId: mongoose.Types.ObjectId
   plan: "free" | "pro" | "premium"
-  status: "active" | "inactive" | "trial" | "past_due" | "canceled"
+  status: "pending"|"active" | "inactive" | "trial" | "past_due" | "canceled"
   startDate: Date
   endDate?: Date
   trialEndDate?: Date
@@ -29,7 +29,7 @@ export interface ISubscription extends Document {
     invoiceId: string
     amount: number
     currency: string
-    status: "paid" | "unpaid" | "refunded"
+    status: "pending"|"paid" | "unpaid" | "refunded"
     date: Date
     pdfUrl?: string
   }[]
@@ -54,7 +54,7 @@ const SubscriptionSchema = new Schema<ISubscription>(
     },
     status: {
       type: String,
-      enum: ["active", "inactive", "trial", "past_due", "canceled"],
+      enum: ["active", "inactive", "trial", "past_due", "canceled","pending"],
       required: [true, "Subscription status is required"],
     },
     startDate: {
@@ -117,7 +117,7 @@ const SubscriptionSchema = new Schema<ISubscription>(
         },
         status: {
           type: String,
-          enum: ["paid", "unpaid", "refunded"],
+          enum: ["paid", "unpaid", "refunded","pending"],
           required: true,
         },
         date: {
