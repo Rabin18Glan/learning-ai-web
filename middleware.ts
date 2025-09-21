@@ -5,7 +5,7 @@ export async function middleware(req: NextRequest) {
   const path = req.nextUrl.pathname;
 
   // Block logged-in users from accessing login/register pages
-  if (path.startsWith("/auth/login") || path.startsWith("/auth/register")) {
+  if (path.startsWith("/auth/login") || path.startsWith("/auth/signup")|| path.startsWith("/auth/forgot-password")|| path.startsWith("/auth/reset-password")) {
     const token = await getToken({
       req,
       secret: process.env.NEXTAUTH_SECRET,

@@ -3,23 +3,21 @@ import connectDB from "@/lib/db";
 import User from "@/models/User";
 import Subscription from "@/models/Subscription";
 import mongoose from "mongoose";
+import { generateToken, sendVerificationEmail } from "@/utils/email-service";
 
 export async function POST(request: NextRequest) {
   try {
     const { name, email, password, provider } = await request.json();
 
-    // Validate input
-    if (!name || !email) {
+    if (!name || !email || !password) {
       return NextResponse.json(
-        { success: false, message: "Please provide name and email" },
+        { success: false, message: "Please provide name, email, and password" },
         { status: 400 }
       );
     }
 
-    // Connect to database
     await connectDB();
 
-    // Check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return NextResponse.json(
@@ -28,19 +26,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Start a transaction
     const session = await mongoose.startSession();
     session.startTransaction();
 
     try {
-      // Create new user
+      const verificationToken = generateToken(email, "verify");
       const user = new User({
         name,
         email,
-        password, // May be undefined for OAuth users
+        password,
         subscriptionPlan: "free",
         subscriptionStatus: "active",
         isActive: true,
+        isVerified: false,
+        verificationToken,
         provider: provider || "credentials",
         lastLogin: new Date(),
         createdAt: new Date(),
@@ -48,13 +47,12 @@ export async function POST(request: NextRequest) {
 
       await user.save({ session });
 
-      // Create default free subscription
       const subscription = new Subscription({
         userId: user._id.toString(),
         plan: "free",
         status: "active",
         startDate: new Date(),
-        billingCycle: "none", // No billing for free plan
+        billingCycle: "none",
         price: 0,
         currency: "USD",
         paymentMethod: { type: "none" },
@@ -63,14 +61,14 @@ export async function POST(request: NextRequest) {
       });
 
       await subscription.save({ session });
+      await sendVerificationEmail(email, verificationToken);
 
-      // Commit the transaction
       await session.commitTransaction();
 
       return NextResponse.json(
         {
           success: true,
-          message: "User registered successfully",
+          message: "User registered successfully. Please check your email to verify your account.",
           user: {
             id: user._id.toString(),
             name: user.name,
@@ -95,7 +93,6 @@ export async function POST(request: NextRequest) {
         { status: 201 }
       );
     } catch (error: any) {
-      // Rollback transaction on error
       await session.abortTransaction();
       throw error;
     } finally {

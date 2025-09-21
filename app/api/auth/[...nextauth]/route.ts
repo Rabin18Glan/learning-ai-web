@@ -1,9 +1,9 @@
-import connectDB from "@/lib/db";
-import Subscription from "@/models/Subscription";
-import User from "@/models/User";
 import NextAuth, { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
+import connectDB from "@/lib/db";
+import User from "@/models/User";
+import Subscription from "@/models/Subscription";
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -29,9 +29,7 @@ export const authOptions: NextAuthOptions = {
 
         try {
           await connectDB();
-          const user = await User.findOne({ email: credentials.email }).select(
-            "+password"
-          );
+          const user = await User.findOne({ email: credentials.email }).select("+password");
 
           if (!user) {
             throw new Error("No user found with this email");
@@ -41,9 +39,11 @@ export const authOptions: NextAuthOptions = {
             throw new Error("Account is inactive");
           }
 
-          const isPasswordValid = await user.verifyPassword(
-            credentials.password
-          );
+          if (!user.isVerified) {
+            throw new Error("Please verify your email before logging in");
+          }
+
+          const isPasswordValid = await user.verifyPassword(credentials.password);
 
           if (!isPasswordValid) {
             throw new Error("Invalid password");
@@ -89,7 +89,7 @@ export const authOptions: NextAuthOptions = {
         token.provider = user.provider;
       }
       if (account) {
-        token.provider = account.provider; // e.g., google, github
+        token.provider = account.provider;
       }
       return token;
     },
@@ -115,7 +115,6 @@ export const authOptions: NextAuthOptions = {
           let dbUser = await User.findOne({ email: user.email });
 
           if (!dbUser) {
-            // Create new user for OAuth sign-in
             dbUser = await User.create({
               email: user.email,
               name: user.name || profile?.name || `User_${Date.now()}`,
@@ -124,11 +123,11 @@ export const authOptions: NextAuthOptions = {
               subscriptionPlan: "free",
               subscriptionStatus: "inactive",
               isActive: true,
+              isVerified: true, // Google users are auto-verified
               provider: account.provider,
               lastLogin: new Date(),
             });
           } else {
-            // Update existing user
             dbUser.lastLogin = new Date();
             dbUser.profilePicture = user.image || dbUser.profilePicture;
             dbUser.name = user.name || dbUser.name;
@@ -167,7 +166,7 @@ export const authOptions: NextAuthOptions = {
           return false;
         }
       }
-      return true; // Allow Credentials sign-in
+      return true;
     },
   },
   pages: {

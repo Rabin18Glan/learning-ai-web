@@ -1,11 +1,9 @@
 "use client";
 
 import type React from "react";
-import { useState } from "react";
-import Link
-
- from "next/link";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, Suspense } from "react";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { motion } from "motion/react";
 import { BookOpen, Loader2 } from "lucide-react";
@@ -16,14 +14,22 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Checkbox } from "@/components/ui/checkbox";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
-export default function SignupPage() {
+function SignupPageView() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+
+  useEffect(() => {
+    if (searchParams.get("verified")) {
+      setSuccess("Email verified successfully! Please log in.");
+    }
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,6 +39,7 @@ export default function SignupPage() {
     }
     setIsLoading(true);
     setError("");
+    setSuccess("");
 
     try {
       const response = await fetch("/api/auth/register", {
@@ -47,22 +54,24 @@ export default function SignupPage() {
         throw new Error(data.message || "Registration failed");
       }
 
-      router.push("/auth/login?registered=true");
+      setSuccess("Registration successful! Please check your email to verify your account.");
+      setName("");
+      setEmail("");
+      setPassword("");
+      setTermsAccepted(false);
     } catch (err: any) {
       setError(err.message || "An error occurred during registration");
       setIsLoading(false);
     }
   };
 
-  const handleOAuthSignIn = async (provider: "google" | "github") => {
+  const handleOAuthSignIn = async (provider: "google") => {
     setIsLoading(true);
     await signIn(provider, { callbackUrl: "/learnings" });
   };
 
   return (
     <div className="relative flex min-h-screen items-center justify-center p-4 overflow-hidden">
-  
-
       <Card className="relative mx-auto max-w-sm bg-white/10 backdrop-blur-lg border border-white/20 shadow-xl rounded-2xl">
         <CardHeader className="space-y-2 text-center">
           <motion.div
@@ -81,6 +90,11 @@ export default function SignupPage() {
             {error && (
               <Alert className="bg-red-500/20 border-red-500/50 text-red-100">
                 <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+            {success && (
+              <Alert className="bg-green-500/20 border-green-500/50 text-green-100">
+                <AlertDescription>{success}</AlertDescription>
               </Alert>
             )}
             <div className="space-y-2">
@@ -154,17 +168,15 @@ export default function SignupPage() {
                 <span className="bg-white/10 px-3 text-gray-600">Or continue with</span>
               </div>
             </div>
-
-              <Button
-                variant="outline"
-                type="button"
-                onClick={() => handleOAuthSignIn("google")}
-                disabled={isLoading}
-                className="w-full bg-white/10 border-white/20 text-back hover:bg-white/20 transition-all"
-              >
-                         <img src={'/google.webp'} className="w-5 h-5"/>   Google
-              </Button>
-             
+            <Button
+              variant="outline"
+              type="button"
+              onClick={() => handleOAuthSignIn("google")}
+              disabled={isLoading}
+              className="w-full bg-white/10 border-white/20 text-back hover:bg-white/20 transition-all"
+            >
+              <img src="/google.webp" className="w-5 h-5" alt="Google" /> Google
+            </Button>
           </CardContent>
         </form>
         <CardFooter className="text-center">
@@ -172,10 +184,25 @@ export default function SignupPage() {
             Already have an account?{" "}
             <Link href="/auth/login" className="text-back font-semibold hover:underline">
               Sign in
+            </Link>{" "}
+            |{" "}
+            <Link href="/auth/forgot-password" className="text-back font-semibold hover:underline">
+              Forgot Password?
             </Link>
           </p>
         </CardFooter>
       </Card>
+    </div>
+  );
+}
+
+
+export default function SignUpPage() {
+  return (
+    <div className="relative flex min-h-screen items-center justify-center p-4 overflow-hidden">
+      <Suspense fallback={<Loader2 className="h-12 w-12 text-back animate-spin" />}>
+        <SignupPageView/>
+      </Suspense>
     </div>
   );
 }

@@ -4,7 +4,7 @@ import bcrypt from "bcryptjs";
 export interface IUser extends Document {
   name: string;
   email: string;
-  password?: string; // Optional for OAuth users
+  password?: string;
   profilePicture?: string;
   bio?: string;
   role: "user" | "admin";
@@ -16,7 +16,11 @@ export interface IUser extends Document {
   updatedAt: Date;
   lastLogin?: Date;
   isActive: boolean;
-  provider?: "google" | "credentials"; 
+  isVerified: boolean;
+  verificationToken?: string;
+  resetPasswordToken?: string;
+  resetPasswordExpires?: Date;
+  provider?: "google" | "credentials";
   verifyPassword(password: string): Promise<boolean>;
 }
 
@@ -38,7 +42,7 @@ const UserSchema = new Schema<IUser>(
     },
     password: {
       type: String,
-      required: false, // Allow OAuth users without passwords
+      required: false,
       minlength: [8, "Password must be at least 8 characters"],
       select: false,
     },
@@ -78,6 +82,22 @@ const UserSchema = new Schema<IUser>(
       type: Boolean,
       default: true,
     },
+    isVerified: {
+      type: Boolean,
+      default: false,
+    },
+    verificationToken: {
+      type: String,
+      select: false,
+    },
+    resetPasswordToken: {
+      type: String,
+      select: false,
+    },
+    resetPasswordExpires: {
+      type: Date,
+      select: false,
+    },
     provider: {
       type: String,
       enum: ["google", "credentials"],
@@ -85,10 +105,9 @@ const UserSchema = new Schema<IUser>(
   },
   {
     timestamps: true,
-  },
+  }
 );
 
-// Hash password before saving (only if password exists)
 UserSchema.pre("save", async function (next) {
   if (!this.isModified("password") || !this.password) return next();
 
@@ -101,9 +120,8 @@ UserSchema.pre("save", async function (next) {
   }
 });
 
-// Method to verify password
 UserSchema.methods.verifyPassword = async function (candidatePassword: string): Promise<boolean> {
-  if (!this.password) return false; // No password for OAuth users
+  if (!this.password) return false;
   return await bcrypt.compare(candidatePassword, this.password);
 };
 
