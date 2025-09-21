@@ -1,9 +1,9 @@
-import NextAuth, { NextAuthOptions } from "next-auth";
-import GoogleProvider from "next-auth/providers/google";
-import GitHubProvider from "next-auth/providers/github";
-import CredentialsProvider from "next-auth/providers/credentials";
 import connectDB from "@/lib/db";
-import User, { IUser } from "@/models/User";
+import Subscription from "@/models/Subscription";
+import User from "@/models/User";
+import NextAuth, { NextAuthOptions } from "next-auth";
+import CredentialsProvider from "next-auth/providers/credentials";
+import GoogleProvider from "next-auth/providers/google";
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -29,7 +29,9 @@ export const authOptions: NextAuthOptions = {
 
         try {
           await connectDB();
-          const user = await User.findOne({ email: credentials.email }).select("+password");
+          const user = await User.findOne({ email: credentials.email }).select(
+            "+password"
+          );
 
           if (!user) {
             throw new Error("No user found with this email");
@@ -39,7 +41,9 @@ export const authOptions: NextAuthOptions = {
             throw new Error("Account is inactive");
           }
 
-          const isPasswordValid = await user.verifyPassword(credentials.password);
+          const isPasswordValid = await user.verifyPassword(
+            credentials.password
+          );
 
           if (!isPasswordValid) {
             throw new Error("Invalid password");
@@ -140,6 +144,23 @@ export const authOptions: NextAuthOptions = {
           user.subscriptionStatus = dbUser.subscriptionStatus;
           user.isActive = dbUser.isActive;
           user.provider = dbUser.provider;
+
+          let subscription = await Subscription.findOne({ userId: user.id });
+          if (!subscription) {
+            await Subscription.create({
+              userId: user.id,
+              plan: "free",
+              status: "active",
+              startDate: new Date(),
+              billingCycle: "none",
+              price: 0,
+              currency: "USD",
+              paymentMethod: { type: "none" },
+              autoRenew: false,
+              invoices: [],
+            });
+          }
+
           return true;
         } catch (error) {
           console.error("Error during OAuth sign-in:", error);
