@@ -4,38 +4,53 @@ import { NextRequest, NextResponse } from "next/server";
 export async function middleware(req: NextRequest) {
   const path = req.nextUrl.pathname;
 
+  // Block logged-in users from accessing login/register pages
+  if (path.startsWith("/auth/login") || path.startsWith("/auth/register")) {
+    const token = await getToken({
+      req,
+      secret: process.env.NEXTAUTH_SECRET,
+      secureCookie: process.env.NODE_ENV === "production",
+    });
+
+    if (token) {
+      // Redirect to callbackUrl if present, otherwise homepage
+      const redirectTo = req.nextUrl.searchParams.get("callbackUrl") ||   new URL("/", req.url);;
+      return NextResponse.redirect(redirectTo);
+    }
+
+    return NextResponse.next();
+  }
+
   // Define protected paths
   const protectedPaths = [
     "/learnings",
     "/profile",
     "/settings",
     "/admin",
+    "/subscription"
   ];
 
   const isPathProtected = protectedPaths.some((protectedPath) =>
     path.startsWith(protectedPath)
   );
 
-  // Allow public access to non-protected paths
   if (!isPathProtected) {
     return NextResponse.next();
   }
 
-  // Get the JWT token
+  // Get JWT token
   const token = await getToken({
     req,
     secret: process.env.NEXTAUTH_SECRET,
-    secureCookie: process.env.NODE_ENV === "production", // Use secure cookies in production
+    secureCookie: process.env.NODE_ENV === "production",
   });
 
-  // Redirect to login if no token
   if (!token) {
     const url = new URL("/auth/login", req.url);
     url.searchParams.set("callbackUrl", path);
     return NextResponse.redirect(url);
   }
 
-  // Check if user is active
   if (!token.isActive) {
     const url = new URL("/auth/login", req.url);
     url.searchParams.set("error", "AccountInactive");
@@ -43,31 +58,34 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // Role-based access for admin routes
-  if (path.startsWith("/admin") && token.role !== "admin") {
-    return NextResponse.redirect(new URL("/unauthorized", req.url));
+  // Admin route check
+  if (path.startsWith("/admin")) {
+    const userRole = token.role || token.user?.role;
+    if (userRole !== "admin") {
+      return NextResponse.redirect(new URL("/unauthorized", req.url));
+    }
   }
 
-  // Optional: Subscription-based access for premium routes (e.g., learnings, settings)
+  // Subscription check
   if (
     (path.startsWith("/learnings") || path.startsWith("/settings")) &&
     token.subscriptionStatus !== "active" &&
-    token.subscriptionPlan !== "pro" &&
-    token.subscriptionPlan !== "premium"
+    !["pro", "premium"].includes(token.subscriptionPlan)
   ) {
     return NextResponse.redirect(new URL("/subscription", req.url));
   }
 
-  // Allow access to authorized users
   return NextResponse.next();
 }
 
-// Configure which paths the middleware applies to
 export const config = {
   matcher: [
+    "/auth/login",
+    "/auth/register",
     "/learnings/:path*",
     "/profile/:path*",
     "/settings/:path*",
     "/admin/:path*",
+    "/subscription/:path*",
   ],
 };
