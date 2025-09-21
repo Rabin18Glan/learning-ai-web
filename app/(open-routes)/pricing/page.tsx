@@ -241,13 +241,13 @@ export default function PricingPage({ userId }: { userId: string }) {
               <TabsList className="bg-gradient-to-r from-slate-100/20 to-slate-200/20 dark:from-slate-950/20 dark:to-slate-900/20 backdrop-blur-xl border-0 shadow-2xl rounded-3xl p-3">
                 <TabsTrigger
                   value="monthly"
-                  className="py-3 px-6 rounded-2xl data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500/50 data-[state=active]:to-indigo-500/50 data-[state=active]:text-white data-[state=active]:shadow-[0_0_15px_rgba(255,255,255,0.3)] transition-all duration-300 hover:scale-105 hover:bg-blue-500/10 dark:hover:bg-blue-900/10"
+                  className="py-3 px-6 rounded-2xl data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-indigo-500 data-[state=active]:text-white data-[state=active]:shadow-[0_0_15px_rgba(255,255,255,0.3)] transition-all duration-300 hover:scale-105 hover:bg-blue-500 dark:hover:bg-blue-900"
                 >
                   Monthly
                 </TabsTrigger>
                 <TabsTrigger
                   value="annual"
-                  className="py-3 px-6 rounded-2xl data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500/50 data-[state=active]:to-indigo-500/50 data-[state=active]:text-white data-[state=active]:shadow-[0_0_15px_rgba(255,255,255,0.3)] transition-all duration-300 hover:scale-105 hover:bg-blue-500/10 dark:hover:bg-blue-900/10"
+                  className="py-3 px-6 rounded-2xl data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-indigo-500 data-[state=active]:text-white data-[state=active]:shadow-[0_0_15px_rgba(255,255,255,0.3)] transition-all duration-300 hover:scale-105 hover:bg-blue-500 dark:hover:bg-blue-900"
                 >
                   Annual (Save 20%)
                 </TabsTrigger>

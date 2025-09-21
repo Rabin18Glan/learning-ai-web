@@ -1,4 +1,4 @@
-// app/api/subscriptions/invoices/route.ts
+
 import { NextRequest, NextResponse } from "next/server";
 import mongoose from "mongoose";
 import { getServerSession } from "next-auth";
@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
       await mongoose.connect(process.env.MONGODB_URI || "");
     }
 
-    const subscription = await Subscription.findOne({ userId }).sort({ createdAt: -1 });
+    const subscription = await Subscription.findOne({ userId });
 
     if (!subscription) {
       return NextResponse.json({ invoices: [] });

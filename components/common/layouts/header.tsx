@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Logo from "@/components/logo";
+import UserDropDown from "@/components/user-drop-down";
 
 const navLinks = [
   { href: "/features", label: "Features" },
@@ -32,9 +33,6 @@ function Header() {
     setIsMenuOpen(!isMenuOpen);
   };
 
-  const handleSignOut = async () => {
-    await signOut({ redirect: true, callbackUrl: "/" });
-  };
 
   return (
     <header className="border-b">
@@ -61,37 +59,7 @@ function Header() {
                   Learnings
                 </Button>
               </Link>
-              <DropdownMenu>
-                <DropdownMenuTrigger className="focus:outline-none">
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={session?.user?.image || ""} alt="User" />
-                    <AvatarFallback>
-                      <User className="h-4 w-4" />
-                    </AvatarFallback>
-                  </Avatar>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <div className="px-2 py-1.5 text-sm font-medium">
-                    {session?.user?.name || session?.user?.email}
-                  </div>
-                  <DropdownMenuSeparator />
-                  <Link href="/profile">
-                    <DropdownMenuItem className="cursor-pointer">
-                      Profile
-                    </DropdownMenuItem>
-                  </Link>
-                  <Link href="/subscription">
-                    <DropdownMenuItem className="cursor-pointer">
-                      Subscription
-                    </DropdownMenuItem>
-                  </Link>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer text-red-500">
-                    <LogOut className="mr-2 h-4 w-4" />
-                    Sign out
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+          <UserDropDown />
             </div>
           ) : (
             <div className="flex items-center gap-2">
@@ -138,45 +106,7 @@ function Header() {
             ))}
 
             {isAuthenticated ? (
-              <>
-                <div className="pt-2 flex items-center space-x-2">
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={session?.user?.image || ""} alt="User" />
-                    <AvatarFallback>
-                      <User className="h-4 w-4" />
-                    </AvatarFallback>
-                  </Avatar>
-                  <span className="text-sm font-medium">
-                    {session?.user?.name || session?.user?.email}
-                  </span>
-                </div>
-                <Link href="/dashboard" onClick={() => setIsMenuOpen(false)}>
-                  <Button variant="outline" className="w-full">
-                    Dashboard
-                  </Button>
-                </Link>
-                <Link href="/profile" onClick={() => setIsMenuOpen(false)}>
-                  <Button variant="ghost" className="w-full justify-start">
-                    Profile
-                  </Button>
-                </Link>
-                <Link href="/settings" onClick={() => setIsMenuOpen(false)}>
-                  <Button variant="ghost" className="w-full justify-start">
-                    Settings
-                  </Button>
-                </Link>
-                <Button
-                  variant="ghost"
-                  className="w-full justify-start text-red-500"
-                  onClick={() => {
-                    setIsMenuOpen(false);
-                    handleSignOut();
-                  }}
-                >
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Sign out
-                </Button>
-              </>
+              <UserDropDown />
             ) : (
               <div className="flex flex-col space-y-2 pt-2">
                 <Link href="/login" onClick={() => setIsMenuOpen(false)}>

@@ -12,16 +12,12 @@ function HeroSection() {
               Discover how EduSense AI transforms your learning experience with cutting-edge AI technology
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/signup">
+              <Link href="/auth/signup">
                 <Button size="lg" className="w-full sm:w-auto">
                   Get Started
                 </Button>
               </Link>
-              <Link href="/demo">
-                <Button size="lg" variant="outline" className="w-full sm:w-auto">
-                  Try Demo
-                </Button>
-              </Link>
+          
             </div>
           </div>
         </section>

@@ -17,7 +17,7 @@ interface Plan {
   id: string;
   name: string;
   price: number;
-  billingCycle: "monthly" | "annual";
+  billingCycle: "monthly" | "annual" | "none";
   description: string;
   features: string[];
 }
@@ -25,7 +25,7 @@ interface Plan {
 interface CurrentPlan {
   id: string;
   name: string;
-  billingCycle: "monthly" | "annual";
+  billingCycle: "monthly" | "annual" | "none ";
   price: number;
   status: string;
   startDate: string;
@@ -133,6 +133,25 @@ const plans: Record<string, Plan[]> = {
       ],
     },
   ],
+  none:[
+    {
+      id: "premium-annual",
+      name: "Premium",
+      price: 37300,
+      billingCycle: "annual",
+      description: "For power users",
+      features: [
+        "Unlimited document uploads",
+        "Premium AI tutoring",
+        "Advanced visualizations",
+        "Unlimited AI messages",
+        "Comprehensive analytics",
+        "Priority support",
+        "Custom learning paths",
+      ],
+    },
+
+  ]
 };
 
 export default function SubscriptionPage() {

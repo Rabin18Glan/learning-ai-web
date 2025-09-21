@@ -7,7 +7,7 @@ export interface ISubscription extends Document {
   startDate: Date
   endDate?: Date
   trialEndDate?: Date
-  billingCycle: "monthly" | "annual"
+  billingCycle: "none"|"monthly" | "annual"
   price: number
   currency: string
   paymentMethod: {
@@ -70,7 +70,7 @@ const SubscriptionSchema = new Schema<ISubscription>(
     },
     billingCycle: {
       type: String,
-      enum: ["monthly", "annual"],
+      enum: ["none","monthly", "annual"],
       required: [true, "Billing cycle is required"],
     },
     price: {
