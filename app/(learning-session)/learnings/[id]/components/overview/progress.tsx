@@ -63,7 +63,7 @@ export function ProgressCard({ data, loading, numberOfCompletedTasks, numberOfTa
                     <div className="w-full bg-gray-200/20 dark:bg-gray-700/20 rounded-full h-4 overflow-hidden backdrop-blur-sm">
                         <div
                             className="bg-gradient-to-r from-indigo-500/80 to-purple-600/80 h-full rounded-full transition-all duration-1000 ease-out relative"
-                            style={{ width: `${progressPercentage}%` }}
+                            style={{ width: `${progressPercentage?progressPercentage:0}%` }}
                         >
                             <div className="absolute inset-0 bg-white/20 animate-pulse backdrop-blur-md"></div>
                         </div>
