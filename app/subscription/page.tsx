@@ -133,7 +133,7 @@ const plans: Record<string, Plan[]> = {
       ],
     },
   ],
-  none:[
+  none: [
     {
       id: "premium-annual",
       name: "Premium",
@@ -154,7 +154,9 @@ const plans: Record<string, Plan[]> = {
   ]
 };
 
-export default function SubscriptionPage() {
+
+
+function SubscriptionView() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isAnnual, setIsAnnual] = useState(false);
@@ -469,13 +471,12 @@ export default function SubscriptionPage() {
                       transition={{ duration: 0.5, delay: index * 0.1 }}
                     >
                       <Card
-                        className={`relative overflow-hidden rounded-3xl border shadow-lg transition-all duration-300 hover:shadow-[0_0_20px_rgba(255,255,255,0.4)] hover:scale-105 ${
-                          plan.id === selectedPlanId
+                        className={`relative overflow-hidden rounded-3xl border shadow-lg transition-all duration-300 hover:shadow-[0_0_20px_rgba(255,255,255,0.4)] hover:scale-105 ${plan.id === selectedPlanId
                             ? "border-blue-600 dark:border-blue-300"
                             : plan.name === "Pro"
-                            ? "bg-gradient-to-br from-blue-100/20 to-indigo-100/20 dark:from-blue-950/20 dark:to-indigo-950/20 border-blue-200/30 dark:border-blue-700/30"
-                            : "bg-gradient-to-br from-slate-100/20 to-slate-200/20 dark:from-slate-950/20 dark:to-slate-900/20 border-slate-200/30 dark:border-slate-700/30"
-                        } backdrop-blur-md`}
+                              ? "bg-gradient-to-br from-blue-100/20 to-indigo-100/20 dark:from-blue-950/20 dark:to-indigo-950/20 border-blue-200/30 dark:border-blue-700/30"
+                              : "bg-gradient-to-br from-slate-100/20 to-slate-200/20 dark:from-slate-950/20 dark:to-slate-900/20 border-slate-200/30 dark:border-slate-700/30"
+                          } backdrop-blur-md`}
                       >
                         {plan.name === "Pro" && (
                           <div className="absolute top-0 right-0 bg-gradient-to-r from-blue-600/80 to-indigo-600/80 text-white px-3 py-1 text-xs font-medium rounded-bl-lg rounded-tr-lg shadow-lg">
@@ -622,5 +623,56 @@ export default function SubscriptionPage() {
       </div>
       <SiteFooter />
     </div>
+  );
+}
+
+import { Suspense } from 'react';
+
+function LoadingSkeleton() {
+  return (
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="container mx-auto py-10 px-4">
+        <div className="flex flex-col gap-8">
+          <Skeleton className="h-10 w-1/4 mb-2" />
+          <Skeleton className="h-6 w-1/2" />
+          <div className="flex justify-center mb-8">
+            <Skeleton className="h-12 w-96 rounded-3xl" />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {Array(3)
+              .fill(0)
+              .map((_, i) => (
+                <Card key={i}>
+                  <CardHeader>
+                    <Skeleton className="h-8 w-24" />
+                    <Skeleton className="h-4 w-32" />
+                  </CardHeader>
+                  <CardContent>
+                    <Skeleton className="h-10 w-36 mb-4" />
+                    <div className="space-y-2">
+                      {Array(4)
+                        .fill(0)
+                        .map((_, j) => (
+                          <Skeleton key={j} className="h-4 w-full" />
+                        ))}
+                    </div>
+                  </CardContent>
+                  <CardFooter>
+                    <Skeleton className="h-10 w-full" />
+                  </CardFooter>
+                </Card>
+              ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function SubscriptionPage() {
+  return (
+    <Suspense fallback={<LoadingSkeleton />}>
+      <SubscriptionView />
+    </Suspense>
   );
 }
