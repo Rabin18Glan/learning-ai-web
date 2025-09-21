@@ -1,14 +1,13 @@
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { addDocumentsToStore } from "@/lib/agent/vector-store";
 import connectToDatabase from "@/lib/db";
-import Resource from "@/models/Resource";
 import Activity, { ActivityArea, ActivityType } from "@/models/Activity";
-import { writeFile } from "fs/promises";
+import Resource from "@/models/Resource";
+import Task from "@/models/Tasks";
+import { GridFSBucket } from "mongodb";
 import mongoose from "mongoose";
 import { getServerSession } from "next-auth/next";
 import { type NextRequest, NextResponse } from "next/server";
-import path from "path";
-import Task from "@/models/Tasks";
 
 export async function GET(
   req: NextRequest,
@@ -51,6 +50,14 @@ export async function GET(
   }
 }
 
+// ✅ Reuse your existing Mongo connection
+async function getBucket() {
+  if (!mongoose.connection.db) {
+    throw new Error("MongoDB not connected");
+  }
+  return new GridFSBucket(mongoose.connection.db, { bucketName: "uploads" });
+}
+
 export async function POST(
   req: NextRequest,
   context: { params: { id: string } }
@@ -63,7 +70,7 @@ export async function POST(
 
     const params =
       context.params instanceof Promise ? await context.params : context.params;
-    const { id } = await params;
+    const { id } = params;
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return NextResponse.json(
         { error: "Invalid learning path ID" },
@@ -79,16 +86,26 @@ export async function POST(
 
     const resourceName = (formData.get("name") as string) || file.name;
     const description = (formData.get("description") as string) || "";
+     await connectToDatabase()
+    const bucket = await getBucket();
+  const uploadStream = bucket.openUploadStream(`${Date.now()}-${file.name}`, {
+  contentType: file.type,
+});
 
-    const buffer = Buffer.from(await file.arrayBuffer());
-    const uploadDir = path.join(process.cwd(), "public", "uploads");
-    const filePath = path.join(uploadDir, `${Date.now()}-${file.name}`);
-    const fileUrl = `/uploads/${path.basename(filePath)}`;
-    await writeFile(filePath, buffer);
+const buffer = Buffer.from(await file.arrayBuffer());
+uploadStream.end(buffer);
 
-    await connectToDatabase();
+// Wait for completion
+await new Promise<void>((resolve, reject) => {
+  uploadStream.on("finish", () => resolve());
+  uploadStream.on("error", reject);
+});
 
-    // Create Resource record
+// ✅ Get the file ID from the stream itself
+const fileId = uploadStream.id; // This is a BSON ObjectId
+const fileUrl = `/api/files/${fileId.toString()}`;
+
+    // ✅ Save Resource metadata in Mongo
     const resource = await Resource.create({
       learningPathId: id,
       title: resourceName,
@@ -103,7 +120,6 @@ export async function POST(
       metadata: {},
     });
 
-    // Log activity (resource added)
     await Activity.create({
       learningPathId: id,
       userId: session.user.id,
@@ -112,17 +128,12 @@ export async function POST(
       description: `Uploaded resource: ${resourceName}`,
     });
 
-    // Trigger embedding/vector store pipeline
     try {
       const result = await addDocumentsToStore(resource, session.user.id);
-
-      if (result) {
-        resource.status = "ready";
-        resource.processingError = undefined;
-      } else {
-        resource.status = "error";
-        resource.processingError = "Unknown error during document processing";
-      }
+      resource.status = result ? "ready" : "error";
+      resource.processingError = result
+        ? undefined
+        : "Unknown error during processing";
       await resource.save();
 
       await Task.create({
@@ -144,10 +155,7 @@ export async function POST(
       await resource.save();
     }
 
-    return NextResponse.json({
-      success: true,
-      resource,
-    });
+    return NextResponse.json({ success: true, resource });
   } catch (error) {
     console.error("Error in resource upload API:", error);
     return NextResponse.json(

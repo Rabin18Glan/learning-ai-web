@@ -6,73 +6,82 @@ import { CheerioWebBaseLoader } from "@langchain/community/document_loaders/web/
 import { RecursiveUrlLoader } from "@langchain/community/document_loaders/web/recursive_url";
 import { YoutubeLoader } from "@langchain/community/document_loaders/web/youtube";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
-import "cheerio";
 import { Document } from "langchain/document";
-import path from "path";
 
+/**
+ * Load and split a resource into LangChain documents
+ */
+export async function loadDocument(resource: IResource) {
+  let loader;
+  let docs: Document[] = [];
 
-export async function loadDocument( resouce:IResource) {
-      let loader;
-      let docs: Document[] = [];
-    
-// Sanitize input just in case
-const cleanedUrl = resouce.fileUrl.replace(/^\/+/, "");
-// Absolute path to public folder
-const source = path.join(process.cwd(), "public", cleanedUrl);
-        console.log(resouce.fileType)
-        switch (resouce.fileType) {
-          case ResourceType.PDF:
-            loader = new PDFLoader(source, {
-              splitPages: true,
-            });
-            break;
-          case ResourceType.YOUTUBE:
-            loader = YoutubeLoader.createFromUrl(source, {
-              language: "en",
-              addVideoInfo: true,
-            });
-            break;
-          case ResourceType.WEBPAGE:
-            loader = new CheerioWebBaseLoader(source, {
-              selector: "body",
-            });
-            break;
-          
-          case ResourceType.DOCX:
-            loader = new DocxLoader(source);
-            break;
-          case ResourceType.CSV:
-            loader = new CSVLoader(source);
-            break;
-          case ResourceType.RECURSIVE_URL:
-            loader = new RecursiveUrlLoader(source, {
-              extractor: (text: string) => {
-                const cheerio = require("cheerio");
-                const $ = cheerio.load(text);
-                // Remove script and style tags
-                $("script, style").remove();
-                // Extract the text
-                return $("body").text();
-              },
-              maxDepth: 2,
-            });
-            break;
-          default:
-            throw new Error(`Unsupported resource type: ${resouce.fileType}`);
-        }
-    
-        if (!docs.length && loader) {
-          docs = await loader.load();
-        }
+  // GridFS-backed URL (served via /api/files/[id])
+  const sourceUrl = resource.fileUrl.startsWith("http")
+    ? resource.fileUrl
+    : `${process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"}${resource.fileUrl}`;
 
-    const splitter = new RecursiveCharacterTextSplitter({
-        chunkSize: 1000, chunkOverlap: 200
-    });
-    const allSplits = await splitter.splitDocuments(docs);
+  console.log("Loading resource:", resource.fileType, sourceUrl);
 
+  switch (resource.fileType) {
+    case ResourceType.PDF: {
+      const response = await fetch(sourceUrl);
+      const blob = await response.blob();
+      loader = new PDFLoader(blob, { splitPages: true });
+      break;
+    }
 
-    // Index chunks
- return allSplits;
+    case ResourceType.DOCX: {
+      const response = await fetch(sourceUrl);
+      const blob = await response.blob();
+      loader = new DocxLoader(blob);
+      break;
+    }
 
+    case ResourceType.CSV: {
+      const response = await fetch(sourceUrl);
+      const blob = await response.blob();
+      loader = new CSVLoader(blob);
+      break;
+    }
 
+    case ResourceType.YOUTUBE: {
+      loader = YoutubeLoader.createFromUrl(sourceUrl, {
+        language: "en",
+        addVideoInfo: true,
+      });
+      break;
+    }
+
+    case ResourceType.WEBPAGE: {
+      loader = new CheerioWebBaseLoader(sourceUrl, { selector: "body" });
+      break;
+    }
+
+    case ResourceType.RECURSIVE_URL: {
+      loader = new RecursiveUrlLoader(sourceUrl, {
+        extractor: (html: string) => {
+          const cheerio = require("cheerio");
+          const $ = cheerio.load(html);
+          $("script, style").remove();
+          return $("body").text();
+        },
+        maxDepth: 2,
+      });
+      break;
+    }
+
+    default:
+      throw new Error(`Unsupported resource type: ${resource.fileType}`);
+  }
+
+  if (loader) {
+    docs = await loader.load();
+  }
+
+  const splitter = new RecursiveCharacterTextSplitter({
+    chunkSize: 1000,
+    chunkOverlap: 200,
+  });
+
+  return splitter.splitDocuments(docs);
 }
