@@ -419,7 +419,7 @@ function SubscriptionView() {
                         Contact Support
                       </Button>
                      {
-                      currentPlan.name!=="free"&& <Button
+                      currentPlan.name.toLowerCase()!=="free"&& <Button
                         variant="destructive"
                         onClick={() => toast({ title: "Subscription Cancelled", description: "Your subscription has been cancelled." })}
                         className="bg-red-600/80 hover:bg-red-700/80 border border-white/20 rounded-2xl shadow-lg hover:shadow-[0_0_20px_rgba(255,255,255,0.4)] transition-all duration-300 hover:scale-105"

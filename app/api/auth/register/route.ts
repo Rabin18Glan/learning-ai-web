@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
 
       // Create default free subscription
       const subscription = new Subscription({
-        userId: user._id.toStirng(),
+        userId: user._id.toString(),
         plan: "free",
         status: "active",
         startDate: new Date(),
