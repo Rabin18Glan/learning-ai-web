@@ -5,9 +5,9 @@ import crypto from "crypto"
 import Subscription from "@/models/Subscription" // Adjust path to your Subscription model
 
 // eSewa configuration
-const ESEWA_SECRET_KEY = process.env.ESEWA_SECRET_KEY || "8gBm/:&EnhH.1/q"
-const SUCCESS_URL = process.env.SUCCESS_URL || "http://localhost:3000/payment-success"
-const FAILURE_URL = process.env.FAILURE_URL || "http://localhost:3000/payment-failure"
+const ESEWA_SECRET_KEY = process.env.ESEWA_SECRET_KEY !
+const SUCCESS_URL = process.env.APP_URL+"/payment-success"
+const FAILURE_URL = process.env.APP_URL+"/payment-failure"
 
 // Generate HMAC-SHA256 signature
 function generateSignature(message: string, secret: string): string {

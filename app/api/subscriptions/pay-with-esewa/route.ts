@@ -8,13 +8,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { authOptions } from "../../auth/[...nextauth]/route";
 
 // eSewa configuration
-const ESEWA_GATEWAY_URL =
-  process.env.ESEWA_GATEWAY_URL ||
-  "https://rc-epay.esewa.com.np/api/epay/main/v2/form";
-const ESEWA_SECRET_KEY = process.env.ESEWA_SECRET_KEY || "8gBm/:&EnhH.1/q";
-const ESEWA_MERCHANT_CODE = process.env.ESEWA_MERCHANT_CODE || "EPAYTEST";
-const SUCCESS_URL = "http://localhost:3000/api/subscriptions/verify";
-const FAILURE_URL ="http://localhost:3000/api/subscriptions/failure";
+const ESEWA_GATEWAY_URL =process.env.ESEWA_GATEWAY_URL
+const ESEWA_SECRET_KEY = process.env.ESEWA_SECRET_KEY !
+const ESEWA_MERCHANT_CODE = process.env.ESEWA_MERCHANT_CODE!;
+const SUCCESS_URL = process.env.APP_URL!+"/api/subscriptions/verify";
+const FAILURE_URL =process.env.APP_URL+"/api/subscriptions/failure";
 
 // Generate random transaction UUID (alphanumeric and hyphens only)
 function generateTransactionUUID(): string {
