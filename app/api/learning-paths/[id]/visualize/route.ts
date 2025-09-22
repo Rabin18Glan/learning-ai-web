@@ -68,12 +68,11 @@ export async function POST(req: NextRequest, context: { params: { id: string } }
     }
 
     // Generate visualization data using structuredLLM
-    const visualizationData = await structuredLLM.invoke(documentContext, {
+    const parsedData = await structuredLLM.invoke(documentContext, {
       metadata: { type }
     });
 
-    // Validate the generated data against GraphDataSchema
-    const parsedData = GraphDataSchema.parse(visualizationData);
+
 
     // Map visualization type to layout
     const layoutMap: Record<string, IVisualization['layout']> = {

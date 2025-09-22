@@ -30,7 +30,7 @@ const NoResourcesState = ({ onAddResources }: { onAddResources?: () => void }) =
 );
 
 const ChatTabCard = ({ children }: { children: React.ReactNode }) => (
-  <Card className="shadow-2xl border-0 bg-background/80 backdrop-blur-xl overflow-hidden max-w-full transform-none">
+  <Card className="h-full border-none shadow-none">
     <CardHeader className="bg-primary-500/5 border-b border-primary-500/10">
       <div className="flex items-center gap-3">
         <div className="w-12 h-12 rounded-xl bg-primary-500 flex items-center justify-center shadow-lg">
@@ -38,9 +38,7 @@ const ChatTabCard = ({ children }: { children: React.ReactNode }) => (
         </div>
         <div>
           <CardTitle className="text-xl text-primary-500">Chat with AI</CardTitle>
-          <CardDescription className="text-base text-primary-500/60">
-            Get instant help and explanations about your learning materials
-          </CardDescription>
+       
         </div>
       </div>
     </CardHeader>
@@ -75,8 +73,8 @@ export function ChatTab({ learningPathId, onAddResources }: ChatTabProps) {
 
   if (isLoading) {
     return (
-      <Card className="shadow-2xl border-0 bg-background/80 backdrop-blur-xl max-w-full transform-none">
-        <CardHeader className="bg-primary-500/5 border-b border-primary-500/10">
+      <div >
+        <CardHeader className="bg-primary-500/5 border-b border-primary-500/10 ">
           <div className="h-6 w-48 bg-primary-500/20 rounded animate-pulse" />
         </CardHeader>
         <CardContent className="p-6">
@@ -93,7 +91,7 @@ export function ChatTab({ learningPathId, onAddResources }: ChatTabProps) {
             </div>
           </div>
         </CardContent>
-      </Card>
+      </div>
     );
   }
 

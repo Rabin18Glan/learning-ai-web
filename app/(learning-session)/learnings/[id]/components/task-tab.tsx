@@ -3,7 +3,7 @@ import { ProgressTracker } from "@/components/progress-tracker"
 
 export function TaskTab({ learningPathId }: { learningPathId: string }) {
   return (
-    <Card>
+    <Card className="border-none shadow-none">
       <CardHeader>
         <CardTitle>Progress Tracking</CardTitle>
         <CardDescription>Stay on top of your learning path</CardDescription>

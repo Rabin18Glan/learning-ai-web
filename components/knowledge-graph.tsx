@@ -260,7 +260,7 @@ export function KnowledgeGraph({ data, options = {} }: KnowledgeGraphProps) {
   return (
     <svg
       ref={svgRef}
-      className="w-full h-full rounded-lg"
+      className="w-full h-[75vh] rounded-lg"
       style={{ background: "linear-gradient(145deg, #f9fafb 0%, #e5e7eb 100%)" }}
     />
   );

@@ -139,7 +139,7 @@ export function VisualizeTab({ learningPathId }: { learningPathId: string }) {
   if (isLoading) return <Skeleton className="h-64 w-full" />;
 
   return (
-    <Card>
+    <Card className="border-none shadow-none">
       <CardHeader>
         <CardTitle>Knowledge Visualization</CardTitle>
         <CardDescription>Visualize the concepts and relationships in your learning materials</CardDescription>
@@ -184,7 +184,7 @@ export function VisualizeTab({ learningPathId }: { learningPathId: string }) {
             <Button onClick={generateVisualization}>Generate Visualization</Button>
           </div>
         ) : (
-          <div className="h-[600px] bg-white dark:bg-gray-900 rounded-lg border p-1">
+          <div className=" bg-white  rounded-lg border ">
             <KnowledgeGraph data={graphData} />
           </div>
         )}

@@ -4,7 +4,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 
 export function NotesTab({ learningPathId }: { learningPathId: string }) {
   return (
-    <Card>
+    <Card className="h-[85] border-none shadow-none">
       <CardHeader>
         <CardTitle>Notes</CardTitle>
         <CardDescription>Take and organize notes for this learning path</CardDescription>
