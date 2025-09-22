@@ -66,14 +66,7 @@ export async function middleware(req: NextRequest) {
     }
   }
 
-  // Subscription check
-  if (
-    (path.startsWith("/learnings") || path.startsWith("/settings")) &&
-    token.subscriptionStatus !== "active" &&
-    !["pro", "premium"].includes(token.subscriptionPlan)
-  ) {
-    return NextResponse.redirect(new URL("/subscription", req.url));
-  }
+
 
   return NextResponse.next();
 }

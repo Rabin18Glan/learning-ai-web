@@ -376,7 +376,7 @@ export default function AboutPage() {
                 Be part of the education revolution. Start your learning journey with EduSense AI today.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link href="/signup">
+                <Link href="/learnings">
                   <Button size="lg" className="w-full sm:w-auto">
                     Get Started
                   </Button>

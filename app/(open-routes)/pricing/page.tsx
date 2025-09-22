@@ -489,7 +489,7 @@ export default function PricingPage({ userId }: { userId: string }) {
               Choose the plan that works for you and begin your AI-powered learning journey today.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/auth/signup">
+              <Link href="/learnings">
                 <Button
                   size="lg"
                   className="w-full sm:w-auto bg-gradient-to-r from-blue-600/80 to-indigo-600/80 hover:from-blue-700/80 hover:to-indigo-700/80 text-white border border-white/20 backdrop-blur-md rounded-2xl shadow-lg hover:shadow-[0_0_20px_rgba(255,255,255,0.4)] transition-all duration-300 hover:scale-105"

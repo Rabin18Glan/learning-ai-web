@@ -17,7 +17,7 @@ function HeroSection() {
               </p>
             </div>
             <div className="flex flex-col gap-2 min-[400px]:flex-row">
-              <Link href="/auth/signup">
+              <Link href="/learnings">
                 <Button size="lg" className="gap-1.5">
                   Get Started
                   <ArrowRight className="h-4 w-4" />

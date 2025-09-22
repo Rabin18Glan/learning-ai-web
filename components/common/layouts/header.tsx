@@ -109,12 +109,12 @@ function Header() {
               <UserDropDown />
             ) : (
               <div className="flex flex-col space-y-2 pt-2">
-                <Link href="/login" onClick={() => setIsMenuOpen(false)}>
+                <Link href="/auth/login" onClick={() => setIsMenuOpen(false)}>
                   <Button variant="outline" className="w-full">
                     Login
                   </Button>
                 </Link>
-                <Link href="/signup" onClick={() => setIsMenuOpen(false)}>
+                <Link href="/auth/signup" onClick={() => setIsMenuOpen(false)}>
                   <Button className="w-full">
                     Sign Up
                   </Button>

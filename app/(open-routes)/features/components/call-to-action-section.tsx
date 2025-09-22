@@ -13,7 +13,7 @@ function CallToActionSection() {
                 Join thousands of students who are learning smarter, not harder, with EduSense AI.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link href="/auth/signup">
+                <Link href="/learnings">
                   <Button size="lg" className="w-full sm:w-auto">
                     Get Started for Free
                   </Button>
