@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { motion } from "motion/react";
-import { BookOpen, Loader2 } from "lucide-react";
+import { BookOpen, Loader2, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,6 +21,7 @@ export default function LoginPage() {
   const dispatch = useAppDispatch();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
@@ -62,7 +63,6 @@ export default function LoginPage() {
         loginSuccess({
           user: { id: "", name: "", email: email },
           token: "",
-          // isAuthenticated: true,
         })
       );
       router.push("/learnings");
@@ -79,8 +79,6 @@ export default function LoginPage() {
 
   return (
     <div className="relative flex min-h-screen items-center justify-center p-4 overflow-hidden">
-    
-
       <Card className="relative mx-auto max-w-md bg-white/10 backdrop-blur-lg border border-white/20 shadow-xl rounded-2xl">
         <CardHeader className="space-y-2 text-center">
           <motion.div
@@ -119,7 +117,7 @@ export default function LoginPage() {
                 className="bg-white/10 border-white/40 text-black placeholder-gray-400 focus:ring-2 focus:ring-white/50"
               />
             </div>
-            <div className="space-y-2">
+            <div className="space-y-2 relative">
               <div className="flex items-center justify-between">
                 <Label htmlFor="password" className="text-black">Password</Label>
                 <Link href="/auth/forgot-password" className="text-sm text-black/80 hover:text-black transition-colors">
@@ -128,13 +126,20 @@ export default function LoginPage() {
               </div>
               <Input
                 id="password"
-                type="password"
+                type={showPassword ? "text" : "password"}
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 disabled={isLoading}
-                className="bg-white/10  border-white/40 text-black placeholder-gray-400 focus:ring-2 focus:ring-white/50"
+                className="bg-white/10 border-white/40 text-black placeholder-gray-400 focus:ring-2 focus:ring-white/50 pr-10"
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-9 text-gray-500 hover:text-black"
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
             </div>
             <Button
               type="submit"
@@ -151,18 +156,15 @@ export default function LoginPage() {
                 <span className="bg-white/10 px-3 text-gray-600">Or continue with</span>
               </div>
             </div>
-           
-              <Button
-                variant="outline"
-                type="button"
-                onClick={() => handleOAuthSignIn("google")}
-                disabled={isLoading}
-                className="w-full bg-white/10 border-white/20 text-black hover:bg-white/20 transition-all"
-              >
-            <img src={'/google.webp'} className="w-5 h-5"/>   Google
-              </Button>
-          
-            
+            <Button
+              variant="outline"
+              type="button"
+              onClick={() => handleOAuthSignIn("google")}
+              disabled={isLoading}
+              className="w-full bg-white/10 border-white/20 text-black hover:bg-white/20 transition-all"
+            >
+              <img src={'/google.webp'} className="w-5 h-5" /> Google
+            </Button>
           </CardContent>
         </form>
         <CardFooter className="text-center">

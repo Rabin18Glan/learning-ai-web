@@ -1,5 +1,6 @@
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { addDocumentsToStore } from "@/lib/agent/vector-store";
+import { getBucket } from "@/lib/bucket";
 import connectToDatabase from "@/lib/db";
 import Activity, { ActivityArea, ActivityType } from "@/models/Activity";
 import Resource from "@/models/Resource";
@@ -51,12 +52,6 @@ export async function GET(
 }
 
 // ✅ Reuse your existing Mongo connection
-async function getBucket() {
-  if (!mongoose.connection.db) {
-    throw new Error("MongoDB not connected");
-  }
-  return new GridFSBucket(mongoose.connection.db, { bucketName: "uploads" });
-}
 
 export async function POST(
   req: NextRequest,
@@ -87,7 +82,7 @@ export async function POST(
     const resourceName = (formData.get("name") as string) || file.name;
     const description = (formData.get("description") as string) || "";
      await connectToDatabase()
-    const bucket = await getBucket();
+    const bucket = await getBucket("uploads");
   const uploadStream = bucket.openUploadStream(`${Date.now()}-${file.name}`, {
   contentType: file.type,
 });
@@ -101,8 +96,8 @@ await new Promise<void>((resolve, reject) => {
   uploadStream.on("error", reject);
 });
 
-// ✅ Get the file ID from the stream itself
-const fileId = uploadStream.id; // This is a BSON ObjectId
+
+const fileId = uploadStream.id;
 const fileUrl = `/api/files/${fileId.toString()}`;
 
     // ✅ Save Resource metadata in Mongo

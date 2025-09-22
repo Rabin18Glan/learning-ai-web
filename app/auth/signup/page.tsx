@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { motion } from "motion/react";
-import { BookOpen, Loader2 } from "lucide-react";
+import { BookOpen, Loader2, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,6 +20,9 @@ function SignupPageView() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
@@ -37,6 +40,11 @@ function SignupPageView() {
       setError("You must agree to the Terms of Service and Privacy Policy");
       return;
     }
+    if (password !== confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+
     setIsLoading(true);
     setError("");
     setSuccess("");
@@ -58,6 +66,7 @@ function SignupPageView() {
       setName("");
       setEmail("");
       setPassword("");
+      setConfirmPassword("");
       setTermsAccepted(false);
     } catch (err: any) {
       setError(err.message || "An error occurred during registration");
@@ -122,17 +131,43 @@ function SignupPageView() {
                 className="bg-white/10 border-white/20 text-back placeholder-gray-400 focus:ring-2 focus:ring-white/50"
               />
             </div>
-            <div className="space-y-2">
+            <div className="space-y-2 relative">
               <Label htmlFor="password" className="text-back">Password</Label>
               <Input
                 id="password"
-                type="password"
+                type={showPassword ? "text" : "password"}
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 disabled={isLoading}
-                className="bg-white/10 border-white/20 text-back placeholder-gray-400 focus:ring-2 focus:ring-white/50"
+                className="bg-white/10 border-white/20 text-back placeholder-gray-400 focus:ring-2 focus:ring-white/50 pr-10"
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-9 text-gray-400 hover:text-white"
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
+            <div className="space-y-2 relative">
+              <Label htmlFor="confirm-password" className="text-back">Confirm Password</Label>
+              <Input
+                id="confirm-password"
+                type={showConfirmPassword ? "text" : "password"}
+                required
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                disabled={isLoading}
+                className="bg-white/10 border-white/20 text-back placeholder-gray-400 focus:ring-2 focus:ring-white/50 pr-10"
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="absolute right-3 top-9 text-gray-400 hover:text-white"
+              >
+                {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
             </div>
             <div className="flex items-center space-x-2">
               <Checkbox
@@ -196,12 +231,11 @@ function SignupPageView() {
   );
 }
 
-
 export default function SignUpPage() {
   return (
     <div className="relative flex min-h-screen items-center justify-center p-4 overflow-hidden">
       <Suspense fallback={<Loader2 className="h-12 w-12 text-back animate-spin" />}>
-        <SignupPageView/>
+        <SignupPageView />
       </Suspense>
     </div>
   );

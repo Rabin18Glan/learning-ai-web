@@ -1,17 +1,18 @@
-import { getBucket } from "@/lib/bucket";
-import connectToDatabase from "@/lib/db";
-import { ObjectId } from "mongodb";
 import { NextRequest } from "next/server";
+
+import { getBucket } from "@/lib/bucket";
+import { default as connectToDatabase } from "@/lib/db";
+import { ObjectId } from "mongodb";
 
 export async function GET(
   req: NextRequest,
   context: Promise<{ params: { id: string } }>
 ) {
   try {
-    const { id } = (await context).params;
-
+    const { id } = await (await context).params;
+    console.log("Fetching youy avatar")
     await connectToDatabase();
-    const bucket = await getBucket("uploads");
+    const bucket = await getBucket("avatar");
     const fileId = new ObjectId(id);
 
     // Find file info first
