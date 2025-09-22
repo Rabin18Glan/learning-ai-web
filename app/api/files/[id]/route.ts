@@ -8,7 +8,7 @@ export async function GET(
   context: Promise<{ params: { id: string } }>
 ) {
   try {
-    const { id } = (await context).params;
+    const { id } =await  (await context).params;
 
     await connectToDatabase();
     const bucket = await getBucket("uploads");
