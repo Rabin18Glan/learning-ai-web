@@ -103,6 +103,7 @@ export async function generateRAGResponse(query: string, relevantChunks: Documen
       Question: ${query}
       
       Provide a clear, educational response that helps the user understand the topic deeply.
+
     `,
   })
 

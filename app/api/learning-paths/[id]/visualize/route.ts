@@ -8,7 +8,7 @@ import { GraphDataSchema } from '@/validations/graph-schema';
 import { getServerSession } from 'next-auth';
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import Activity from '@/models/Activity';  // ✅ Import Activity model
+import Activity from '@/models/Activity';  
 
 export async function GET(req: NextRequest, context: { params: { id: string } }) {
   await dbConnect();
@@ -103,7 +103,7 @@ export async function POST(req: NextRequest, context: { params: { id: string } }
       viewCount: 0,
     });
 
-    // ✅ Log activity
+   
     await Activity.create({
       userId: session.user.id,
       learningPathId: id,

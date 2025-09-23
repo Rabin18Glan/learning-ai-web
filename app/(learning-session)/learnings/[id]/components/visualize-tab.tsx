@@ -120,9 +120,7 @@ export function VisualizeTab({ learningPathId }: { learningPathId: string }) {
         type: selectedViz,
       });
 
-      // Validate response data against GraphDataSchema
-      const validatedData = GraphDataSchema.parse(response.data.visualization);
-      setGraphData(validatedData);
+      setGraphData(response.data.visualization);
     } catch (error) {
       console.error("Error generating visualization:", error);
       if (error instanceof AxiosError) {
@@ -145,7 +143,7 @@ export function VisualizeTab({ learningPathId }: { learningPathId: string }) {
         <CardDescription>Visualize the concepts and relationships in your learning materials</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="mb-4">
+        {/* <div className="mb-4">
           <Select
             value={selectedViz}
             onValueChange={(sel: "knowledge-graph" | "mindmap" | "dataflow-diagram") => setSelectedViz(sel)}
@@ -161,7 +159,7 @@ export function VisualizeTab({ learningPathId }: { learningPathId: string }) {
               ))}
             </SelectContent>
           </Select>
-        </div>
+        </div> */}
 
         {!hasResources ? (
           <div className="text-center py-12">
